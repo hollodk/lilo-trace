@@ -191,5 +191,19 @@
             </div>
         </div>
         <script type="module" src="/src/main.js"></script>
+        <script>
+            // Example: turn on all log levels
+            if (window.liloWebSocket?.logger) {
+                window.liloWebSocket.logger.setLevels({
+                    info: false,
+                    warn: false,
+                    error: false,
+                    debug: false,
+                    trace: false,
+                });
+
+                console.log('[LogLevel] Overridden logger levels from HTML');
+            }
+        </script>
     </body>
 </html>
