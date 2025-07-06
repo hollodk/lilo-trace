@@ -103,7 +103,8 @@ export class LiloWebSocketManager {
 
                     break;
 
-                case 250:
+                case 250:   // standard trace
+                case 255:   // normalized trace
                     document.getElementById('trace_status').innerHTML = text;
                     if (data.data != null) {
                         document.getElementById('trace_uuid').value = data.data.uuid;
@@ -128,7 +129,13 @@ export class LiloWebSocketManager {
                     }
                     break;
 
-                case 260:
+                case 270:   // trace-svg
+                    console.log(data);
+                    this.dispatch('LiloTraceSvg', data.data);
+
+                    break;
+
+                case 260:   // no trace
                 case 500:
                 case 510:
                 case 520:
@@ -184,6 +191,11 @@ export class LiloWebSocketManager {
     resendTrace() {
         this.logger.info('Resending trace...');
         this.websocketSend('resend');
+    }
+
+    getTraceSvg(omaBase64) {
+        this.logger.info('Getting svg from trace...');
+        this.websocketSend('trace-svg', omaBase64);
     }
 
     updateSettings() {
@@ -270,5 +282,4 @@ export class LiloWebSocketManager {
     encodeBase64Unicode(str) {
         return btoa(unescape(encodeURIComponent(str)));
     }
-
 }
