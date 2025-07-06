@@ -1,0 +1,341 @@
+<html>
+    <head>
+        <title>Clubmaster Tracesoftware | Websocket Client</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-aFq/bzH65dt+w6FI2ooMVUpc+21e0SRygnTpmBvdBgSdnuTN7QbdgL+OapgHtvPp" crossorigin="anonymous">
+
+        <style>
+        body { margin-top: 40px; }
+        </style>
+        <script src="websocket_b2b.js" defer></script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Trace status
+                        </div>
+                        <div class="card-body">
+                            <div id="websocket_status">Waiting for connection, please press <b>Start websocket</b> to get started.</div>
+                            <div id="trace_status"></div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <span onclick="startWebsocket()" class="btn btn-sm btn-primary">Start websocket</span>
+                            <span onclick="getDemoTrace()" class="btn btn-sm btn-primary">Get demo OMA</span>
+                            <span onclick="resendTrace()" class="btn btn-sm btn-primary">Resend</span>
+                            <span onclick="restartTrace()" class="btn btn-sm btn-primary">Restart</span>
+                            <span onclick="getB2BXML()" class="btn btn-sm btn-primary">Generate B2B</span>
+                        </div>
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Tracer settings
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label for="rs232_device">Device</label>
+                                <input class="form-control form-control-sm" id="rs232_device" value="/dev/ttyUSB0">
+                                <small>Ex.: COM3 or /dev/ttyUSB0</small>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="rs232_baudrate">Baudrate</label>
+                                <input class="form-control form-control-sm" id="rs232_baudrate" value="9600">
+                            </div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <span onclick="updateSettings()" class="btn btn-sm btn-primary">Update settings</span>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            OMA data
+                        </div>
+                        <div class="card-body p-0 table-responsive">
+                            <table class="table table-sm table-bordered text-center">
+                                <tr>
+                                    <th class="text-start">Data</th>
+                                    <th>Right</th>
+                                    <th>Left</th>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">HBOX</td>
+                                    <td id="right_hbox"></td>
+                                    <td id="left_hbox"></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">VBOX</td>
+                                    <td id="right_vbox"></td>
+                                    <td id="left_vbox"></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">ZTILT</td>
+                                    <td id="right_ztilt"></td>
+                                    <td id="left_ztilt"></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">FCRV</td>
+                                    <td id="right_fcrv"></td>
+                                    <td id="left_fcrv"></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">CIRC</td>
+                                    <td id="right_circ"></td>
+                                    <td id="left_circ"></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">DIAMETER</td>
+                                    <td id="right_diameter"></td>
+                                    <td id="left_diameter"></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">DBL</td>
+                                    <td colspan="2" id="dbl"></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-start">Radii</td>
+                                    <td colspan="2" id="radii"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Order
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label for="order_hbox">Reference</label>
+                                <input class="form-control form-control-sm" id="order_reference">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Prescription
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <h3>Right</h3>
+
+                                    <div class="mb-2">
+                                        <label for="order_right_lens">Lens</label>
+                                        <select class="form-control form-control-sm" id="order_right_lens">
+                                            <option>Express 1.50</option>
+                                            <option>Express 1.60</option>
+                                            <option>Express 1.67</option>
+                                            <option>Express Sun 1.50</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_right_coating">Coating</label>
+                                        <select class="form-control form-control-sm" id="order_right_coating">
+                                            <option>Uncoated</option>
+                                            <option>Hard coated</option>
+                                            <option>HMC</option>
+                                            <option>HMC+</option>
+                                            <option>SHMC</option>
+                                            <option>SHMC BLUE</option>
+                                            <option>ULTIMATE</option>
+                                            <option>ULTIMATE BLUE</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_right_diameter">Diameter</label>
+                                        <select class="form-control form-control-sm" id="order_right_diameter">
+                                            <option>60</option>
+                                            <option>65</option>
+                                            <option>70</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_right_sphere">Sphere</label>
+                                        <input class="form-control form-control-sm" id="order_right_sphere">
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_right_cylinder">Cylinder</label>
+                                        <input class="form-control form-control-sm" id="order_right_cylinder">
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_right_axis">Axis</label>
+                                        <input class="form-control form-control-sm" id="order_right_axis">
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_right_addition">Addition</label>
+                                        <input class="form-control form-control-sm" id="order_right_addition">
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_right_pd">PD</label>
+                                        <input class="form-control form-control-sm" id="order_right_pd">
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_right_height">Height</label>
+                                        <input class="form-control form-control-sm" id="order_right_height">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <h3>Left</h3>
+
+                                    <div class="mb-2">
+                                        <label for="order_left_lens">Lens</label>
+                                        <select class="form-control form-control-sm" id="order_left_lens">
+                                            <option>Express 1.50</option>
+                                            <option>Express 1.60</option>
+                                            <option>Express 1.67</option>
+                                            <option>Express Sun 1.50</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_left_coating">Coating</label>
+                                        <select class="form-control form-control-sm" id="order_left_coating">
+                                            <option>Uncoated</option>
+                                            <option>Hard coated</option>
+                                            <option>HMC</option>
+                                            <option>HMC+</option>
+                                            <option>SHMC</option>
+                                            <option>SHMC BLUE</option>
+                                            <option>ULTIMATE</option>
+                                            <option>ULTIMATE BLUE</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_left_diameter">Diameter</label>
+                                        <select class="form-control form-control-sm" id="order_left_diameter">
+                                            <option>60</option>
+                                            <option>65</option>
+                                            <option>70</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_left_sphere">Sphere</label>
+                                        <input class="form-control form-control-sm" id="order_left_sphere">
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_left_cylinder">Cylinder</label>
+                                        <input class="form-control form-control-sm" id="order_left_cylinder">
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_left_axis">Axis</label>
+                                        <input class="form-control form-control-sm" id="order_left_axis">
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_left_addition">Addition</label>
+                                        <input class="form-control form-control-sm" id="order_left_addition">
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_left_pd">PD</label>
+                                        <input class="form-control form-control-sm" id="order_left_pd">
+                                    </div>
+
+                                    <div class="mb-2">
+                                        <label for="order_left_height">Height</label>
+                                        <input class="form-control form-control-sm" id="order_left_height">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Glass
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label for="order_edging">Edging & mounting</label>
+                                <select class="form-control form-control-sm" id="order_edging">
+                                    <option>No edging</option>
+                                    <option>Remote edging</option>
+                                    <option>Remote edging & mounting</option>
+                                </select>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="order_dbl">DBL</label>
+                                <input class="form-control form-control-sm" id="order_dbl">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="mb-2">
+                                        <label for="order_hbox">HBox</label>
+                                        <input class="form-control form-control-sm" id="order_hbox">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="mb-2">
+                                        <label for="order_vbox">VBox</label>
+                                        <input class="form-control form-control-sm" id="order_vbox">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header">
+                    Frame
+                </div>
+                <div class="card-body text-center">
+                    <svg width="948px" height="400px">
+                        <defs>
+                            <linearGradient id="gradient">
+                                <stop offset="5%" stop-color="#cbe9f2" />
+                                <stop offset="95%" stop-color="#add8e6" />
+                            </linearGradient>
+                        </defs>
+                        <path id="left_path" style="stroke:#333333;" fill="url(#gradient)"></path>
+                        <path id="right_path" style="stroke:#333333;" fill="url(#gradient)"></path>
+                        Sorry, your browser does not support inline SVG.
+                    </svg>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Trace data
+                        </div>
+                        <div class="card-body">
+                            <textarea class="form-control form-control-sm" rows="20" id="oma"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            B2B
+                        </div>
+                        <div class="card-body">
+                            <textarea class="form-control form-control-sm" rows="20" id="b2b"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </body>
+</html>

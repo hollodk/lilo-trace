@@ -1,0 +1,195 @@
+<html>
+    <head>
+        <title>LiloTrace | WebClient</title>
+
+        <style>
+        body { margin-top: 40px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Trace status
+                        </div>
+                        <div class="card-body">
+                            <div id="websocket_status"></div>
+                            <div id="trace_status"></div>
+                            <div id="trace_share"></div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <a class="btn btn-sm btn-primary" href="https://www.liloconnect.com/lilo/lilo-trace-latest-win-x64.exe">Download Lilo-Trace</a>
+                            <span class="btn btn-sm btn-primary" onclick="window.liloWebsocket.getDemoTrace()">Get demo OMA</span>
+                            <span class="btn btn-sm btn-primary" onclick="window.liloWebsocket.resendTrace()">Resend</span>
+                            <span class="btn btn-sm btn-primary" onclick="window.liloWebsocket.restartTrace()">Restart</span>
+                        </div>
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            License information
+                        </div>
+                        <div class="card-body p-0 table-responsive">
+                            <table class="table table-striped">
+                                <tr>
+                                    <th>App key</th>
+                                    <td class="text-end" id="license_app_key"></td>
+                                </tr>
+                                <tr>
+                                    <th>Expire at</th>
+                                    <td class="text-end" id="license_expire_at"></td>
+                                </tr>
+                                <tr>
+                                    <th>License type</th>
+                                    <td class="text-end" id="license_type"></td>
+                                </tr>
+                                <tr>
+                                    <th>Is valid</th>
+                                    <td class="text-end" id="license_is_valid"></td>
+                                </tr>
+                                <tr>
+                                    <th>Is premium</th>
+                                    <td class="text-end" id="license_is_premium"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-6">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Config
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label for="license">Websocket server</label>
+                                <input class="form-control form-control-sm" id="websocket_server" onchange="updateWebsocket()">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="mb-2">
+                                        <label for="rs232_device">Device</label>
+                                        <input class="form-control form-control-sm" id="rs232_device" onchange="updateSettings()">
+                                        <small>Ex.: COM3 or /dev/ttyUSB0, check <b>Available devices</b> below.</small>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="mb-2">
+                                        <label for="rs232_baudrate">Baudrate</label>
+                                        <select class="form-control form-control-sm" id="rs232_baudrate" onchange="updateSettings()">
+                                            <option value=""></option>
+                                            <option value="1200">1200</option>
+                                            <option value="2400">2400</option>
+                                            <option value="4800">4800</option>
+                                            <option value="9600">9600</option>
+                                            <option value="19200">19200</option>
+                                            <option value="38400">38400</option>
+                                            <option value="57600">57600</option>
+                                            <option value="115200">115200</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-2">
+                                <label for="output_folder">Output folder</label>
+                                <input class="form-control form-control-sm" id="output_folder" onchange="updateSettings()" placeholder="c:\OMA">
+                            </div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <span onclick="window.liloWebsocket.connectTo('ws://localhost:55002')" class="btn btn-sm btn-primary">My Computer</span>
+                            <span onclick="window.liloWebsocket.connectTo('wss://www.liloconnect.com:55002')" class="btn btn-sm btn-primary">Demo server</span>
+                        </div>
+                    </div>
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Trace upload
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-2">
+                                <label for="trace_uuid">Uuid</label>
+                                <input class="form-control form-control-sm" id="trace_uuid" readonly="readonly">
+                            </div>
+
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="mb-2">
+                                        <label for="trace_name">Name</label>
+                                        <input class="form-control form-control-sm" id="trace_name" placeholder="My trace">
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="mb-2">
+                                        <label for="trace_tags">Tags</label>
+                                        <input class="form-control form-control-sm" id="trace_tags" placeholder="Summer collection, Yellow">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <button type="button" onclick="window.liloWebsocket.setTraceName()" class="btn btn-sm btn-primary">Update trace</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-3">
+                <div class="card-header">
+                    Frame
+                </div>
+                <div class="card-body text-center">
+                    <svg width="948px" height="400px">
+                        <defs>
+                        <linearGradient id="gradient">
+                        <stop offset="5%" stop-color="#cbe9f2" />
+                        <stop offset="95%" stop-color="#add8e6" />
+                        </linearGradient>
+                        </defs>
+                        <path id="left_path" style="stroke:#333333;" fill="url(#gradient)"></path>
+                        <path id="right_path" style="stroke:#333333;" fill="url(#gradient)"></path>
+                        Sorry, your browser does not support inline SVG.
+                    </svg>
+                </div>
+                <div class="card-footer text-end">
+                    <button type="button" class="btn btn-sm btn-primary" onclick="window.LiLoWebSocketManager.downloadOMA()">Download OMA file</button>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-5">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            OMA file
+                        </div>
+                        <div class="card-body p-0">
+                            <textarea class="form-control form-control-sm" rows="20" id="oma"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Trace information
+                        </div>
+                        <div class="card-body p-0">
+                            <textarea class="form-control form-control-sm" rows="20" id="oma_param"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-3">
+                    <div class="card mb-3">
+                        <div class="card-header">
+                            Available devices
+                        </div>
+                        <div class="card-body p-0">
+                            <textarea class="form-control form-control-sm" rows="20" id="devices"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <script type="module" src="/src/main.js"></script>
+    </body>
+</html>
