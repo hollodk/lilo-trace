@@ -1,8 +1,11 @@
+import { LiloLogger } from './LiloLogger.js';
+
 export class LiloWebSocketManager {
     constructor() {
         this.reconnectInterval = 3*1000; // 3 seconds
         this.ws = null;
         this.appKey = null;
+        this.logger = new LiloLogger();
     }
 
     init() {
@@ -18,7 +21,7 @@ export class LiloWebSocketManager {
         this.ws = new WebSocket(server);
 
         this.ws.onopen = (event) => {
-            getWebsocketStatus();
+            this.getWebsocketStatus();
         };
 
         this.ws.onclose = (event) => {
@@ -34,14 +37,14 @@ export class LiloWebSocketManager {
 
         this.ws.onerror = (event) => {
             document.getElementById('trace_status').innerHTML = 'lost connection, an error occur';
-            console.log('error occur');
+            this.logger.error('error occur');
 
             this.ws.close();
         };
 
         this.ws.onmessage = (event) => {
             var data = JSON.parse(event.data);
-            console.log(data);
+            this.logger.trace(data);
 
             switch (data.code) {
                 case 100:
@@ -119,7 +122,7 @@ export class LiloWebSocketManager {
                     break;
 
                 default:
-                    console.log('might be others :)');
+                    this.logger.info('might be others :)');
                     break;
             }
         };
@@ -206,10 +209,10 @@ export class LiloWebSocketManager {
         fetch (url, opt)
             .then((response) => response.json())
             .then((data) => {
-                console.log(data);
+                this.logger.trace(data);
             })
             .catch ((error) => {
-                console.log(error);
+                this.logger.error(error);
             })
         ;
     }
