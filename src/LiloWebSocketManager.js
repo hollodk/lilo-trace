@@ -18,6 +18,8 @@ export class LiloWebSocketManager {
 
     init() {
         this.logger.info('Initializing WebSocket Manager...');
+        this.dispatch('LiloInit');
+
         this.setServer();
         this.connect();
     }
@@ -34,23 +36,31 @@ export class LiloWebSocketManager {
 
         this.ws.onopen = () => {
             this.logger.info('WebSocket connection established.');
+            this.dispatch('LiloConnected');
+
             this.getWebsocketStatus();
         };
 
         this.ws.onclose = (event) => {
             this.logger.warn(`WebSocket closed. Reason: ${event.reason || 'unknown'}`);
+            this.dispatch('LiloClosed', { reason: event.reason });
+
             document.getElementById('trace_status').innerHTML = `no connection to trace server, trying to reconnect to ${server}`;
             document.getElementById('websocket_status').innerHTML = 'Connection closed to server';
 
             this.ws = null;
             setTimeout(() => {
                 this.logger.info('Reconnecting to WebSocket...');
+                this.dispatch('LiloReconnect');
+
                 this.connect();
             }, this.reconnectInterval);
         };
 
         this.ws.onerror = (event) => {
             this.logger.error('WebSocket error occurred', event);
+            this.dispatch('LiloError', { event });
+
             document.getElementById('trace_status').innerHTML = 'lost connection, an error occurred';
             this.ws.close();
         };
@@ -87,7 +97,10 @@ export class LiloWebSocketManager {
                     document.getElementById('license_app_key').innerHTML = data.data.license.app_key;
                     document.getElementById('license_expire_at').innerHTML = data.data.license.expire_at;
                     this.appKey = data.data.license.app_key;
+
                     this.logger.info('License info updated.');
+                    this.dispatch('LiloLicenseReceived', data.data.license);
+
                     break;
 
                 case 250:
@@ -97,14 +110,21 @@ export class LiloWebSocketManager {
                         const oma = data.data.oma;
                         document.getElementById('oma').innerHTML = oma;
                         document.getElementById('oma_param').innerHTML = JSON.stringify(data, null, 2);
+                        document.getElementById('current_trace').dataset.base64 = this.encodeBase64Unicode(oma);
+
+                        /**
                         if (data.data.shape) {
                             document.getElementById("right_path").setAttribute("d", data.data.shape.right);
                             document.getElementById("left_path").setAttribute("d", data.data.shape.left);
                         }
+                        */
+
                         if (data.data.url) {
                             document.getElementById('trace_share').innerHTML = `<a href="${data.data.url}">Download or share trace</a>`;
                         }
+
                         this.logger.info('Trace data updated with OMA and shape.');
+                        this.dispatch('LiloTraceDone', data.data);
                     }
                     break;
 
@@ -127,7 +147,10 @@ export class LiloWebSocketManager {
                 case 570:
                     document.getElementById('trace_status').innerHTML = text;
                     document.getElementById('devices').value = JSON.stringify(data.data, null, 2);
+
                     this.logger.info('Device list received and updated.');
+                    this.dispatch('LiloDevicesReceived', data.data);
+
                     break;
 
                 default:
@@ -237,5 +260,15 @@ export class LiloWebSocketManager {
         document.getElementById('websocket_server').value = server;
         this.logger.debug(`WebSocket server set to ${server}`);
     }
-}
 
+    dispatch(eventName, detail = {}) {
+        const event = new CustomEvent(eventName, { detail });
+        window.dispatchEvent(event);
+        this.logger.debug(`Event dispatched: ${eventName}`, detail);
+    }
+
+    encodeBase64Unicode(str) {
+        return btoa(unescape(encodeURIComponent(str)));
+    }
+
+}

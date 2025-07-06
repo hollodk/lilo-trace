@@ -10,6 +10,9 @@ const liloShape = new LiloShapeManager();
 window.liloWebsocket = liloWebsocket;
 window.liloShape = liloShape;
 
-liloWebsocket.init();
-liloShape.addListeners();
-liloShape.init();
+document.addEventListener('DOMContentLoaded', () => {
+    liloWebsocket.init();
+    liloShape.addListeners();
+    liloShape.init();
+});
+

@@ -1,7 +1,7 @@
 export class LiloShapeManager {
     addListeners() {
-        document.addEventListener('liloTraceDone', this.traceDone);
-        document.addEventListener('liloTraceNormalized', this.traceNormalized);
+        window.addEventListener('LiloTraceDone', this.traceDone.bind(this));
+        window.addEventListener('LiloTraceNormalized', this.traceNormalized.bind(this));
     }
 
     init() {
@@ -10,54 +10,107 @@ export class LiloShapeManager {
         for (let i = 0; i < items.length; i++) {
             let e = items[i].parentNode;
 
-            let oma = atob(items[i].dataset.base64);
-            let r = drawshape(oma, 160);
-
-            items[i].remove();
-
-            let div = document.createElement('div');
-            let svg = document.createElement('svg');
-            svg.setAttribute('width', '100px');
-            svg.setAttribute('height', '40px');
-
-            let defs = document.createElement('defs');
-            let gradient = document.createElement('linearGradient');
-            gradient.setAttribute('id', 'gradient');
-
-            let stop1 = document.createElement('stop');
-            stop1.setAttribute('offset', '5%');
-            stop1.setAttribute('stop-color', '#cbe9f2');
-
-            let stop2 = document.createElement('stop');
-            stop2.setAttribute('offset', '95%');
-            stop2.setAttribute('stop-color', '#add8e6');
-
-            gradient.appendChild(stop1);
-            gradient.appendChild(stop2);
-
-            defs.appendChild(gradient);
-
-            svg.appendChild(defs);
-
-            div.appendChild(svg);
-
-            let pathRight = document.createElement('path');
-            pathRight.setAttribute('style', 'stroke:#333333');
-            pathRight.setAttribute('stroke-width', '1');
-            pathRight.setAttribute('fill', 'url(#gradient)');
-            pathRight.setAttribute('d', r.right);
-
-            let pathLeft = document.createElement('path');
-            pathLeft.setAttribute('style', 'stroke:#333333');
-            pathLeft.setAttribute('stroke-width', '1');
-            pathLeft.setAttribute('fill', 'url(#gradient)');
-            pathLeft.setAttribute('d', r.left);
-
-            svg.appendChild(pathRight);
-            svg.appendChild(pathLeft);
-
-            e.innerHTML = div.innerHTML;
+            this.drawElement(e);
         }
+    }
+
+    drawElement(element, width = 100) {
+        console.log('Draw element');
+
+        const height = width * 0.4;
+        const oma = atob(element.dataset.base64);
+        const r = this.drawshape(oma, width, height);
+
+        const div = document.createElement('div');
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute('width', width + 'px');
+        svg.setAttribute('height', height + 'px');
+        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+        svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+
+        const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+
+        // Lens gradient
+        const gradient = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+        gradient.setAttribute('id', 'gradient');
+        gradient.setAttribute('x1', '0%');
+        gradient.setAttribute('y1', '0%');
+        gradient.setAttribute('x2', '100%');
+        gradient.setAttribute('y2', '100%');
+
+        const stop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+        stop1.setAttribute('offset', '0%');
+        stop1.setAttribute('stop-color', '#e0f7ff');
+
+        const stop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+        stop2.setAttribute('offset', '100%');
+        stop2.setAttribute('stop-color', '#b8e4f9');
+
+        gradient.appendChild(stop1);
+        gradient.appendChild(stop2);
+        defs.appendChild(gradient);
+
+        // Glow filter
+        const filter = document.createElementNS("http://www.w3.org/2000/svg", "filter");
+        filter.setAttribute("id", "glow");
+
+        const feGaussian = document.createElementNS("http://www.w3.org/2000/svg", "feGaussianBlur");
+        feGaussian.setAttribute("in", "SourceGraphic");
+        feGaussian.setAttribute("stdDeviation", "0.6");
+        filter.appendChild(feGaussian);
+        defs.appendChild(filter);
+
+        svg.appendChild(defs);
+
+        // Helper to create lens group with sparkle
+        const createLens = (pathData, sparkleId) => {
+            const group = document.createElementNS("http://www.w3.org/2000/svg", "g");
+
+            // Base lens
+            const lens = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            lens.setAttribute("d", pathData);
+            lens.setAttribute("stroke", "#333");
+            lens.setAttribute("stroke-width", "1");
+            lens.setAttribute("fill", "url(#gradient)");
+            lens.setAttribute("filter", "url(#glow)");
+
+            // Shine overlay
+            const shine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            shine.setAttribute("d", pathData);
+            shine.setAttribute("fill", "white");
+            shine.setAttribute("opacity", "0.07");
+
+            // Sparkle sweep
+            const sparkle = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            sparkle.setAttribute("x", "-20");
+            sparkle.setAttribute("y", "0");
+            sparkle.setAttribute("width", "20");
+            sparkle.setAttribute("height", height);
+            sparkle.setAttribute("fill", "white");
+            sparkle.setAttribute("opacity", "0.1");
+            sparkle.setAttribute("rx", "10");
+
+            const animate = document.createElementNS("http://www.w3.org/2000/svg", "animateTransform");
+            animate.setAttribute("attributeName", "transform");
+            animate.setAttribute("type", "translate");
+            animate.setAttribute("from", "-20 0");
+            animate.setAttribute("to", `${width} 0`);
+            animate.setAttribute("dur", "2s");
+            animate.setAttribute("repeatCount", "indefinite");
+            sparkle.appendChild(animate);
+
+            group.appendChild(lens);
+            group.appendChild(shine);
+            group.appendChild(sparkle);
+
+            return group;
+        };
+
+        svg.appendChild(createLens(r.left, 'left'));
+        svg.appendChild(createLens(r.right, 'right'));
+
+        div.appendChild(svg);
+        element.innerHTML = div.innerHTML;
     }
 
     showTrace(trace)
@@ -97,7 +150,8 @@ export class LiloShapeManager {
         console.log('Received event:', message);
         // You can perform any actions or logic based on the event here
 
-        trace = getLastTrace();
+        /*
+        trace = this.getLastTrace();
         document.getElementById('trace-oma').value = trace.oma;
 
         this.showTrace(trace);
@@ -107,6 +161,10 @@ export class LiloShapeManager {
                 getWebsocketNormalize();
             }, 500);
         }
+        */
+
+        const current = document.getElementById('current_trace');
+        this.drawElement(current, 600);
     }
 
     traceNormalized(event) {
@@ -114,109 +172,104 @@ export class LiloShapeManager {
         console.log('Received event:', message);
         // You can perform any actions or logic based on the event here
 
-        trace = getLastTrace();
+        trace = this.getLastTrace();
         document.getElementById('trace-oma').value = trace.oma;
 
         this.showTrace(trace);
     }
 
-    drawshape(oma, factor = 160)
-    {
-        var r = '';
+    drawshape(oma, canvasWidth = 100, canvasHeight = 40) {
+        const radiiR = [];
+        const radiiL = [];
+        let dataR = "", dataL = "";
+        let side = "R", count = 1, phistep = 0.1, phi = 0.0;
+        let dbl = 0.0;
 
-        var radiiR = [];
-        var radiiL = [];
-        var dataR = "";
-        var dataL = "";
-        var side = "R";
-        var count = 1;
-        var phistep = 0.1;
-        var maxxR = 0.0;
-        var minxR = 0.0;
-        var maxxL = 0.0;
-        var minxL = 0.0;
-        var dbl = 0.0;
-        var hbox = 0.0;
-        var vbox = 0.0;
-        var sides = "B";
+        let lines = oma.split(/\r\n|\n|\r/);
 
-        var lines = oma.split('\r\n');
+        for (let line of lines) {
+            const parts = line.split("=");
+            if (parts.length !== 2) continue;
 
-        if (lines.length < 5) {
-            lines = oma.split('\n');
+            const values = parts[1].split(";");
 
-            if (lines.length < 5) {
-                lines = oma.split('\r');
+            switch (parts[0]) {
+                case "TRCFMT":
+                    side = values[3];
+                    count = parseInt(values[1]);
+                    phistep = (Math.PI * 2) / count;
+                    phi = 0.0;
+                    break;
+
+                case "R":
+                    for (let radval of values) {
+                        const rad = parseFloat(radval);
+                        const obj = {
+                            rad: rad,
+                            x: -Math.cos(phi) * rad,
+                            y: -Math.sin(phi) * rad
+                        };
+                        phi += phistep;
+                        if (side === "R") radiiR.push(obj);
+                        else if (side === "L") radiiL.push(obj);
+                    }
+                    break;
+
+                case "DBL":
+                    dbl = parseFloat(values[0]); // millimeters
+                    break;
             }
         }
 
-        for (var actline in lines) {
-            var parts = lines[actline].split("=");
-            if (parts.length == 2) {
-                var values = parts[1].split(";");
-                switch (parts[0]) {
-                    case "TRCFMT" :
-                        side = values[3];
-                        count = values[1];
-                        phistep = Math.PI * 2 / count;
-                        phi = 0.0;
-                        break;
-                    case "R" :
-                        var obj = {rad: 0, x: 0, y: 0 };
-                        for (var radval in values) {
-                            phi += phistep;
-                            obj.rad = values[radval];
-                            obj.x = -Math.cos(phi) * obj.rad;
-                            obj.y = -Math.sin(phi) * obj.rad;
-                            switch (side) {
-                                case "R" : radiiR.push(obj);
-                                    if (obj.x > maxxR) maxxR = obj.x;
-                                    if (obj.x < minxR) minxR = obj.x;
-                                    break;
-                                case "L" : radiiL.push(obj);
-                                    if (obj.x > maxxL) maxxL = obj.x;
-                                    if (obj.x < minxL) minxL = obj.x;
-                                    break;
-                            }
-                        }
-                        break;
-                    case "DBL" :
-                        dbl = parseFloat(values[0]);
-                        break;
-                    case "VBOX" :
-                        vbox = values[0];
-                        break;
-                    case "HBOX" :
-                        hbox = values[0];
-                        break;
-                    case "_TRCSIDE":
-                        sides = values[0];
-                        break;
-                }
-            }
+        if (radiiR.length === 0 && radiiL.length === 0) {
+            return { right: '', left: '' };
         }
 
-        var fpd = ((maxxR-minxR)+(maxxL-minxL)) / 2 + dbl * 100;
-        var i=0;
+        // Compute bounding box of both sides
+        const allPoints = [...radiiR, ...radiiL];
+        let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
 
-        var numbX = factor/6;
-        var numbY = factor/8;
+        for (const pt of allPoints) {
+            if (pt.x < minX) minX = pt.x;
+            if (pt.x > maxX) maxX = pt.x;
+            if (pt.y < minY) minY = pt.y;
+            if (pt.y > maxY) maxY = pt.y;
+        }
 
-        for (var actrad in radiiR) {
-            dataR += ((i==0)?"M":"L") + ((radiiR[actrad].x+fpd) / factor + numbX) + " " + (radiiR[actrad].y / factor + numbY) + " ";
-            i++;
+        const shapeWidth = maxX - minX + dbl * 100; // extend width by DBL (scaled)
+        const shapeHeight = maxY - minY;
+        const scaleX = canvasWidth / shapeWidth;
+        const scaleY = canvasHeight / shapeHeight;
+        const scale = Math.min(scaleX, scaleY) * 0.9;
+
+        const offsetX = canvasWidth / 2;
+        const offsetY = canvasHeight / 2;
+
+        const centerX = (maxX + minX) / 2;
+        const centerY = (maxY + minY) / 2;
+
+        //const halfBridge = (dbl * 100 * scale) / 2+(canvasWidth/6);
+        const halfBridge = (canvasWidth/4);
+
+        for (let i = 0; i < radiiR.length; i++) {
+            const x = (radiiR[i].x - centerX) * scale + offsetX + halfBridge;
+            const y = (radiiR[i].y - centerY) * scale + offsetY;
+            dataR += (i === 0 ? "M" : "L") + x + " " + y + " ";
         }
-        i=0;
-        for (var actrad in radiiL) {
-            dataL += ((i==0)?"M":"L") + (radiiL[actrad].x / factor + numbX) + " " + (radiiL[actrad].y / factor + numbY) + " ";
-            i++;
+
+        for (let i = 0; i < radiiL.length; i++) {
+            const x = (radiiL[i].x - centerX) * scale + offsetX - halfBridge;
+            const y = (radiiL[i].y - centerY) * scale + offsetY;
+            dataL += (i === 0 ? "M" : "L") + x + " " + y + " ";
         }
-        dataR += " z";
-        dataL += " z";
+
+        dataR += "z";
+        dataL += "z";
 
         return {
             right: dataR,
-            left: dataL,
-        }
+            left: dataL
+        };
     }
+
 }

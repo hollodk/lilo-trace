@@ -138,7 +138,8 @@
                 <div class="card-header">
                     Frame
                 </div>
-                <div class="card-body text-center">
+                <div class="card-body text-center" class="oma-svg" id="current_trace" style="min-height:200px">
+                    <!--
                     <svg width="948px" height="400px">
                         <defs>
                         <linearGradient id="gradient">
@@ -150,6 +151,7 @@
                         <path id="right_path" style="stroke:#333333;" fill="url(#gradient)"></path>
                         Sorry, your browser does not support inline SVG.
                     </svg>
+                    -->
                 </div>
                 <div class="card-footer text-end">
                     <button type="button" class="btn btn-sm btn-primary" onclick="window.LiLoWebSocketManager.downloadOMA()">Download OMA file</button>
@@ -190,20 +192,23 @@
 
             </div>
         </div>
+
         <script type="module" src="/src/main.js"></script>
         <script>
             // Example: turn on all log levels
-            if (window.liloWebSocket?.logger) {
-                window.liloWebSocket.logger.setLevels({
-                    info: false,
-                    warn: false,
-                    error: false,
-                    debug: false,
-                    trace: false,
-                });
+            window.addEventListener('LiloInit', () => {
+                if (window.liloWebsocket?.logger) {
+                    window.liloWebsocket.logger.setLevels({
+                        info: true,
+                        warn: true,
+                        error: true,
+                        debug: true,
+                        trace: true,
+                    });
 
-                console.log('[LogLevel] Overridden logger levels from HTML');
-            }
+                    console.log('[LogLevel] Overridden logger levels from HTML');
+                }
+            });
         </script>
     </body>
 </html>
