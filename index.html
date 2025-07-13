@@ -813,14 +813,19 @@
                             console.log(event);
                         });
 
-                        addEventListener('LiloTraceDone', (event) => {
+                        addEventListener('LiloTraceDone', async (event) => {
                             console.log(event);
 
                             const element = document.getElementById('trace_current');
                             const width = element.dataset.width;
 
-                            liloApi.setFrame('trace_current', event.detail.oma_base64, width, 'technical');
                             this.oma = event.detail.oma;
+
+                            const svg = await liloApi.getOmaSvg(event.detail.oma, width, {
+                                type: 'technical',
+                            });
+
+                            element.innerHTML = svg;
                         });
                     },
                 }
@@ -865,8 +870,6 @@
                         theme.path.stroke = this.frameColor;
 
                         const param = {
-                            oma: { base64: result.oma.base64 },
-                            dimension: { width: width },
                             exam: {
                                 left: { ...this.left },
                                 right: { ...this.right },
@@ -883,7 +886,7 @@
                             theme: theme,
                         };
 
-                        const svg = await liloApi.getOmaSvg(param);
+                        const svg = await liloApi.getOmaSvgBase64(result.oma.base64, width, param);
                         document.getElementById('configured_frame').innerHTML = svg;
                     },
                 };

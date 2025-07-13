@@ -129,7 +129,6 @@ export class LiloWebSocketManager {
                 this.dispatch('LiloTraceStatus', text);
 
                 if (data.data != null) {
-
                     this.logger.info('Trace data updated with OMA and shape.');
                     this.dispatch('LiloTraceDone', data.data);
                 }

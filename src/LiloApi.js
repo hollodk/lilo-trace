@@ -81,12 +81,6 @@ export class LiloApi {
         }
 
         const param = {
-            oma: {
-                base64: base64,
-            },
-            dimension: {
-                width: width,
-            },
             exam: {
                 right: {
                     pd: 30,
@@ -103,11 +97,11 @@ export class LiloApi {
             param.theme.path.stroke = frame;
         }
 
-        this.attachFrame(targetId, param);
+        this.attachFrame(targetId, base64, width, param);
     }
 
-    async attachFrame(targetId, param) {
-        const svg = await this.getOmaSvg(param);
+    async attachFrame(targetId, base64, width, param) {
+        const svg = await this.getOmaSvgBase64(base64, width, param);
 
         const element = document.getElementById(targetId);
         element.innerHTML = svg;
@@ -126,8 +120,36 @@ export class LiloApi {
         return json;
     }
 
-    async getOmaSvg(param) {
+    async getOmaSvg(oma, width, param) {
+        const json = await this.getOmaSvgBase64(this.encodeBase64Unicode(oma), width, param);
+        return json;
+    }
+
+    async getOmaSvgBase64(oma, width, param) {
         const url = this.apiUrl+'/oma/svg';
+
+        param.oma = {
+            base64: oma,
+        };
+
+        param.dimension = {
+            width: width,
+        };
+
+        if (typeof(param.theme) == 'undefined') {
+            param.theme = this.getTheme();
+        }
+
+        if (typeof(param.exam) == 'undefined') {
+            param.exam = {
+                right: {
+                    pd: 30,
+                },
+                left: {
+                    pd: 30,
+                },
+            };
+        }
 
         const json = await this.liloRequest(url, 'POST', param);
         return json.result;

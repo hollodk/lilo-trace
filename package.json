@@ -1,7 +1,6 @@
 {
-    "name": "my-project",
-    "private": true,
-    "version": "1.0.0",
+    "name": "lilo-trace",
+    "version": "1.0.1",
     "main": "dist/lilo-websocket-manager.umd.js",
     "module": "dist/lilo-websocket-manager.esm.js",
     "unpkg": "dist/lilo-websocket-manager.min.js",
