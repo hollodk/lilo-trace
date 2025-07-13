@@ -1,214 +1,706 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
     <head>
-        <title>LiloTrace | WebClient</title>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>LiloTrace Control Panel</title>
 
         <style>
-        body { margin-top: 40px; }
+        .card-header {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .badge.bg-success {
+            background-color: #28a745 !important;
+        }
+        .badge.bg-danger {
+            background-color: #dc3545 !important;
+        }
+        .badge.bg-secondary {
+            background-color: #6c757d !important;
+        }
+        .btn-sm {
+            font-weight: 500;
+            border-radius: 999px;
+            padding: 6px 14px;
+        }
         </style>
+        <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     </head>
-    <body>
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-6">
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            Trace status
-                        </div>
-                        <div class="card-body">
-                            <div id="websocket_status"></div>
-                            <div id="trace_status"></div>
-                            <div id="trace_share"></div>
-                        </div>
-                        <div class="card-footer text-end">
-                            <a class="btn btn-sm btn-primary" href="https://www.liloconnect.com/lilo/lilo-trace-latest-win-x64.exe">Download Lilo-Trace</a>
-                            <span class="btn btn-sm btn-primary" onclick="window.liloWebsocket.getDemoTrace()">Get demo OMA</span>
-                            <span class="btn btn-sm btn-primary" onclick="window.liloWebsocket.resendTrace()">Resend</span>
-                            <span class="btn btn-sm btn-primary" onclick="window.liloWebsocket.restartTrace()">Restart</span>
+    <body x-data="traceControl()">
+        <div class="container py-4">
+            <h1 class="mb-4">LiloTrace Control Panel</h1>
+
+            <!-- Navigation Tabs -->
+            <ul class="nav nav-tabs mb-3">
+                <li class="nav-item"><a class="nav-link" :class="{active: tab === 'dashboard'}" @click="tab = 'dashboard'" href="#">Dashboard</a></li>
+                <li class="nav-item"><a class="nav-link" :class="{active: tab === 'config'}" @click="tab = 'config'" href="#">Config</a></li>
+                <li class="nav-item"><a class="nav-link" :class="{active: tab === 'license'}" @click="tab = 'license'" href="#">License</a></li>
+                <li class="nav-item"><a class="nav-link" :class="{active: tab === 'showcase'}" @click="tab = 'showcase'" href="#">Showcase</a></li>
+                <li class="nav-item"><a class="nav-link" :class="{active: tab === 'logs'}" @click="tab = 'logs'" href="#">Logs</a></li>
+            </ul>
+
+            <!-- Dashboard -->
+            <div x-show="tab === 'dashboard'">
+
+                <!-- Trace Controls -->
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-header bg-light">
+                        🎛️ <strong>Trace Controls</strong>
+                    </div>
+                    <div class="card-body d-flex flex-wrap gap-2">
+                        <button class="btn btn-success" @click="liloWebsocket.liloTraceStart()">▶️ Start</button>
+                        <button class="btn btn-danger" @click="liloWebsocket.liloTraceStop()">⏹️ Stop</button>
+                        <button class="btn btn-danger" @click="liloWebsocket.liloTraceRestart()">⏹️ Restart</button>
+                        <button class="btn btn-secondary" @click="liloWebsocket.resendTrace()">🔁 Resend</button>
+                        <button class="btn btn-info" @click="liloWebsocket.requestDemoTrace()">🎞️ Demo</button>
+                        <button class="btn btn-warning" @click="liloWebsocket.normalizeTrace()">🧹 Normalize</button>
+                        <button class="btn btn-dark" @click="liloWebsocket.json()">🧾 Get JSON</button>
+                        <button class="btn btn-dark" @click="liloWebsocket.getWebsocketStatus()">🧾 Status</button>
+                    </div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <!-- License Overview -->
+                    <div class="col-md-6">
+                        <div class="card border-primary shadow-sm">
+                            <div class="card-header bg-primary text-white">
+                                🔐 License Overview
+                            </div>
+                            <div class="card-body">
+                                <h6 class="text-muted">Application Key</h6>
+                                <div class="mb-2">
+                                    <code class="text-primary fw-bold" x-text="config.license?.app_key || '-'"></code>
+                                </div>
+
+                                <h6 class="text-muted">License Key</h6>
+                                <div class="mb-2">
+                                    <code class="text-success fw-bold" x-text="config.license?.license_key || '-'"></code>
+                                </div>
+
+                                <h6 class="text-muted">License Type</h6>
+                                <div class="mb-2">
+                                    <span class="badge bg-info text-dark px-3 py-1" x-text="config.license?.license_type || '-'"></span>
+                                </div>
+
+                                <h6 class="text-muted">Trial Expiration</h6>
+                                <div class="mb-2">
+                                    <span class="badge bg-warning text-dark px-3 py-1" x-text="status.license?.trial_expire || '-'"></span>
+                                </div>
+
+                                <h6 class="text-muted">Config File Path</h6>
+                                <div>
+                                    <code class="small text-break" x-text="config.config_file || '-'"></code>
+                                </div>
+
+                                <h6 class="text-muted">Version</h6>
+                                <div>
+                                    <code class="small text-break" x-text="config.license?.version || '-'"></code>
+                                </div>
+
+                            </div>
                         </div>
                     </div>
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            License information
-                        </div>
-                        <div class="card-body p-0 table-responsive">
-                            <table class="table table-striped">
-                                <tr>
-                                    <th>App key</th>
-                                    <td class="text-end" id="license_app_key"></td>
-                                </tr>
-                                <tr>
-                                    <th>Expire at</th>
-                                    <td class="text-end" id="license_expire_at"></td>
-                                </tr>
-                                <tr>
-                                    <th>License type</th>
-                                    <td class="text-end" id="license_type"></td>
-                                </tr>
-                                <tr>
-                                    <th>Is valid</th>
-                                    <td class="text-end" id="license_is_valid"></td>
-                                </tr>
-                                <tr>
-                                    <th>Is premium</th>
-                                    <td class="text-end" id="license_is_premium"></td>
-                                </tr>
-                            </table>
+
+                    <!-- System Status -->
+                    <div class="col-md-6">
+                        <div class="card border-secondary shadow-sm">
+                            <div class="card-header bg-secondary text-white">
+                                ⚙️ System Status
+                            </div>
+                            <div class="card-body">
+
+                                <!-- Status Buttons -->
+                                <div class="d-flex flex-wrap gap-2 mb-3">
+                                    <button type="button" class="btn btn-sm"
+                                                          :class="status.system?.websocket ? 'btn-success' : 'btn-danger'">
+                                        📡 WebSocket
+                                    </button>
+
+                                    <button type="button" class="btn btn-sm"
+                                                          :class="status.system?.lilotrace_started ? 'btn-success' : 'btn-danger'">
+                                        🚀 LiloTrace
+                                    </button>
+
+                                    <button type="button" class="btn btn-sm"
+                                                          :class="status.system?.serial_connected ? 'btn-success' : 'btn-danger'">
+                                        🔌 Serial
+                                    </button>
+
+                                    <button type="button" class="btn btn-sm"
+                                                          :class="status.system?.gateway_connected ? 'btn-success' : 'btn-danger'">
+                                        🛰️ Gateway
+                                    </button>
+
+                                    <button type="button" class="btn btn-sm"
+                                                          :class="status.system?.communication_ok ? 'btn-success' : 'btn-danger'">
+                                        💬 Communication
+                                    </button>
+                                </div>
+
+                                <!-- Textual Status -->
+                                <div class="small text-muted mb-1" id="trace-status">
+                                    📥 <span x-text="traceStatus || 'Waiting for tracer signal...'"></span>
+                                </div>
+                                <div class="small text-muted" id="websocket-status">
+                                    🌐 <span x-text="websocketStatus || 'Waiting for websocket...'"></span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="col-sm-6">
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            Config
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-2">
-                                <label for="license">Websocket server</label>
-                                <input class="form-control form-control-sm" id="websocket_server" onchange="updateWebsocket()">
-                            </div>
 
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="mb-2">
-                                        <label for="rs232_device">Device</label>
-                                        <input class="form-control form-control-sm" id="rs232_device" onchange="updateSettings()">
-                                        <small>Ex.: COM3 or /dev/ttyUSB0, check <b>Available devices</b> below.</small>
-                                    </div>
+                <!-- Large SVG viewer -->
+                <div class="card border-dark shadow-sm mb-5">
+                    <div class="card-header bg-dark text-white">
+                        🖼️ Live SVG Visualization
+                    </div>
+                    <div class="card-body">
+                        <div class="border p-3" style="min-height: 300px; background: #f8f9fa;" id="trace_current" data-width="1200"></div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Configuration Section -->
+            <div x-show="tab === 'config'">
+                <div class="card border-info shadow-sm mb-4">
+                    <div class="card-header bg-info text-white">⚙️ General Configuration</div>
+                    <div class="card-body">
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label for="mode" class="form-label">Mode</label>
+                                <select class="form-select" id="mode" x-model="config.mode">
+                                    <option value="off">Off</option>
+                                    <option value="lilo">LiloTrace</option>
+                                    <option value="gateway">Gateway</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8">
+                                <label for="output_folder" class="form-label">Output Folder</label>
+                                <input type="text" class="form-control" id="output_folder" x-model="config.output_folder" placeholder="e.g. C:\OMA">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <ul class="nav nav-tabs mb-3" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="lilo-tab" data-bs-toggle="tab" data-bs-target="#lilo" type="button" role="tab">LiloTrace</button>
+                    </li>
+                    <li class="nav-item" x-show="config.license?.license_type === 'freemium'">
+                        <button class="nav-link" id="gateway-tab" data-bs-toggle="tab" data-bs-target="#gateway" type="button" role="tab">Gateway</button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+
+                    <!-- LiloTrace Tab -->
+                    <div class="tab-pane fade show active" id="lilo" role="tabpanel">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    <label class="form-label">Serial Mode</label>
+                                    <select class="form-select" id="serial_mode" x-model="config.serial.mode">
+                                        <option value="blocking">Always Listening</option>
+                                        <option value="nonblocking">Request for Trace</option>
+                                    </select>
                                 </div>
-                                <div class="col-sm-6">
-                                    <div class="mb-2">
-                                        <label for="rs232_baudrate">Baudrate</label>
-                                        <select class="form-control form-control-sm" id="rs232_baudrate" onchange="updateSettings()">
-                                            <option value=""></option>
-                                            <option value="1200">1200</option>
-                                            <option value="2400">2400</option>
-                                            <option value="4800">4800</option>
-                                            <option value="9600">9600</option>
-                                            <option value="19200">19200</option>
-                                            <option value="38400">38400</option>
-                                            <option value="57600">57600</option>
-                                            <option value="115200">115200</option>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Serial Device</label>
+                                    <input type="text" class="form-control" id="serial_device" x-model="config.serial.device">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Baudrate</label>
+                                    <select class="form-select" id="serial_baudrate" x-model="config.serial.baudrate">
+                                        <template x-for="rate in [110,300,600,1200,2400,4800,9600,14400,19200,38400,57600,115200,128000,256000]">
+                                            <option :value="rate" x-text="rate"></option>
+                                        </template>
+                                    </select>
+                                </div>
+
+                                <div class="form-check">
+                                    <input type="checkbox" class="form-check-input" id="serial_rtscts" x-model="config.serial.rtscts">
+                                    <label class="form-check-label" for="serial_rtscts">RTS/CTS</label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gateway Tab -->
+                    <div class="tab-pane fade" id="gateway" role="tabpanel">
+                        <div class="card bg-light">
+                            <div class="card-body">
+
+                                <div class="mb-3">
+                                    <label class="form-label">Gateway Mode</label>
+                                    <select class="form-select" id="gateway_mode" x-model="config.gateway.mode">
+                                        <option value="nonblocking">Request for Trace</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label">Run Mode</label>
+                                    <select class="form-select" id="gateway_parametermode" x-model="config.gateway.parametermode">
+                                        <option value="skip">Reuse existing configuration</option>
+                                        <option value="set">Set my parameters</option>
+                                    </select>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Tracer</label>
+                                        <select class="form-select" x-model="config.gateway.tracername">
+                                            <template x-for="name in ['Testshape','Nidek LT','Indo','Essilor phi','Essilor kappa','Essilor eTess','Hoya GT1000','Hoya GT3000','Hoya UT1000','Hoya GT5000','WECO 3DFT','WECO Trace II','WECO Trace III','Topcon FR50','Briot ScanFormNet 2','Briot Axcel','Briot Silver','Briot Accura','National Optronics 4T','Takubomatic FD80','Huvitz Excelon']">
+                                                <option :value="name" x-text="name"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Protocol</label>
+                                        <select class="form-select" x-model="config.gateway.protocol">
+                                            <template x-for="protocol in ['OMA','NidekSTD','NidekLAN','HOYA','PCCOM','WECO']">
+                                                <option :value="protocol" x-text="protocol"></option>
+                                            </template>
                                         </select>
                                     </div>
                                 </div>
+
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Socket Address</label>
+                                        <input type="text" class="form-control" x-model="config.gateway.socketaddress" placeholder="127.0.0.1">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">Socket Port</label>
+                                        <input type="text" class="form-control" x-model="config.gateway.socketport" placeholder="65500">
+                                    </div>
+                                </div>
+
+                                <div class="my-3">
+                                    <label class="form-label">Connection</label>
+                                    <select class="form-select" x-model="config.gateway.tracerconnection">
+                                        <template x-for="opt in ['serial','tcpip_act','tcpip_pas','usb3','usb5','file']">
+                                            <option :value="opt" x-text="opt"></option>
+                                        </template>
+                                    </select>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Tracer Port</label>
+                                        <input type="text" class="form-control" x-model="config.gateway.tracerport" placeholder="COM3">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">BPS</label>
+                                        <select class="form-select" x-model="config.gateway.bps">
+                                            <template x-for="bps in ['9600','19200','115200']">
+                                                <option :value="bps" x-text="bps"></option>
+                                            </template>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="row g-3 mt-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Parity</label>
+                                        <select class="form-select" x-model="config.gateway.parity">
+                                            <option value="none">None</option>
+                                            <option value="even">Even</option>
+                                            <option value="odd">Odd</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Wordlen</label>
+                                        <select class="form-select" x-model="config.gateway.wordlen">
+                                            <option value="8">8</option>
+                                            <option value="7">7</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Stoplen</label>
+                                        <select class="form-select" x-model="config.gateway.stoplen">
+                                            <option value="1">1</option>
+                                            <option value="1.5">1.5</option>
+                                            <option value="2">2</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="form-check mt-3">
+                                    <input class="form-check-input" type="checkbox" id="gateway_rtscts" x-model="config.gateway.rtscts">
+                                    <label class="form-check-label" for="gateway_rtscts">RTS/CTS</label>
+                                </div>
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input" type="checkbox" id="gateway_dtrdsr" x-model="config.gateway.dtrdsr">
+                                    <label class="form-check-label" for="gateway_dtrdsr">DTR/DSR</label>
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label">IP Address</label>
+                                        <input type="text" class="form-control" x-model="config.gateway.ipaddress" placeholder="192.168.0.200">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label">IP Port</label>
+                                        <input type="text" class="form-control" x-model="config.gateway.ipport">
+                                    </div>
+                                </div>
+
                             </div>
-                            <div class="mb-2">
-                                <label for="output_folder">Output folder</label>
-                                <input class="form-control form-control-sm" id="output_folder" onchange="updateSettings()" placeholder="c:\OMA">
-                            </div>
-                        </div>
-                        <div class="card-footer text-end">
-                            <span onclick="window.liloWebsocket.connectTo('ws://localhost:55002')" class="btn btn-sm btn-primary">My Computer</span>
-                            <span onclick="window.liloWebsocket.connectTo('wss://www.liloconnect.com:55002')" class="btn btn-sm btn-primary">Demo server</span>
                         </div>
                     </div>
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            Trace upload
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-2">
-                                <label for="trace_uuid">Uuid</label>
-                                <input class="form-control form-control-sm" id="trace_uuid" readonly="readonly">
-                            </div>
+                </div>
 
-                            <div class="row">
-                                <div class="col-sm-6">
-                                    <div class="mb-2">
-                                        <label for="trace_name">Name</label>
-                                        <input class="form-control form-control-sm" id="trace_name" placeholder="My trace">
-                                    </div>
-                                </div>
-                                <div class="col-sm-6">
-                                    <div class="mb-2">
-                                        <label for="trace_tags">Tags</label>
-                                        <input class="form-control form-control-sm" id="trace_tags" placeholder="Summer collection, Yellow">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="card-footer text-end">
-                            <button type="button" onclick="window.liloWebsocket.setTraceName()" class="btn btn-sm btn-primary">Update trace</button>
-                        </div>
+                <!-- Save Button -->
+                <div class="text-end mt-4">
+                    <button class="btn btn-success" @click="saveConfig()">💾 Save Configuration</button>
+                </div>
+            </div>
+
+            <!-- License -->
+            <div x-show="tab === 'license'">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Enter License</h5>
+                        <input type="text" class="form-control mb-2" placeholder="License Key" x-model="config.license.license_key">
+                        <button class="btn btn-primary" @click="submitLicense()">Activate</button>
                     </div>
                 </div>
             </div>
 
-            <div class="card mb-3">
-                <div class="card-header">
-                    Frame
+            <!-- Showcase Section -->
+            <div class="row my-5" x-show="tab === 'showcase'">
+                <!-- Small cards -->
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame1" data-type="simple" data-width="380" data-theme="yellow"></div>
+                    </div>
                 </div>
-                <div class="card-body text-center" class="oma-svg" id="current_trace" style="min-height:200px">
-                    <!--
-                    <svg width="948px" height="400px">
-                        <defs>
-                        <linearGradient id="gradient">
-                        <stop offset="5%" stop-color="#cbe9f2" />
-                        <stop offset="95%" stop-color="#add8e6" />
-                        </linearGradient>
-                        </defs>
-                        <path id="left_path" style="stroke:#333333;" fill="url(#gradient)"></path>
-                        <path id="right_path" style="stroke:#333333;" fill="url(#gradient)"></path>
-                        Sorry, your browser does not support inline SVG.
-                    </svg>
-                    -->
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame2" data-type="simple" data-width="380" data-theme="orange"></div>
+                    </div>
                 </div>
-                <div class="card-footer text-end">
-                    <button type="button" class="btn btn-sm btn-primary" onclick="window.LiLoWebSocketManager.downloadOMA()">Download OMA file</button>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame3" data-type="simple" data-width="380" data-theme="red"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame4" data-type="simple" data-width="380" data-theme="green"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame5" data-type="simple" data-width="380" data-theme="teal"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame6" data-type="simple" data-width="380"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame7" data-type="simple" data-width="380" data-theme="purple"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame8" data-type="simple" data-width="380" data-theme="brown"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame9" data-type="simple" data-width="380" data-theme="grey"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame10" data-type="simple" data-width="380" data-theme="mirror-blue"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame11" data-type="simple" data-width="380" data-theme="mirror-teal"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame12" data-type="simple" data-width="380" data-theme="mirror-purple"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame13" data-type="simple" data-width="380" data-theme="mirror-silver"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame14" data-type="simple" data-width="380" data-theme="mirror-rosegold"></div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame15" data-type="simple" data-width="380" data-theme="mirror-ice"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame21" data-type="face" data-width="380"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame22" data-type="face" data-width="380"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame23" data-type="face" data-width="380"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame24" data-type="face" data-width="580"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame25" data-type="face" data-width="580"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-12 mb-2">
+                    <!-- Large SVG viewer -->
+                    <div class="card border-dark shadow-sm my-4">
+                        <div class="card-header bg-dark text-white">
+                            🖼️ Live SVG Visualization
+                        </div>
+                        <div class="card-body" id="frame31" data-type="technical" data-width="1180"></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="row">
-                <div class="col-sm-5">
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            OMA file
-                        </div>
-                        <div class="card-body p-0">
-                            <textarea class="form-control form-control-sm" rows="20" id="oma"></textarea>
-                        </div>
+            <!-- Logs -->
+            <div x-show="tab === 'logs'">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Tracer Output</h5>
+                        <pre class="bg-dark text-white p-2" style="max-height: 400px; overflow-y: scroll;"></pre>
                     </div>
                 </div>
-                <div class="col-sm-4">
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            Trace information
-                        </div>
-                        <div class="card-body p-0">
-                            <textarea class="form-control form-control-sm" rows="20" id="oma_param"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-sm-3">
-                    <div class="card mb-3">
-                        <div class="card-header">
-                            Available devices
-                        </div>
-                        <div class="card-body p-0">
-                            <textarea class="form-control form-control-sm" rows="20" id="devices"></textarea>
-                        </div>
-                    </div>
-                </div>
-
             </div>
         </div>
 
-        <script type="module" src="/src/main.js"></script>
         <script>
-            // Example: turn on all log levels
-            window.addEventListener('LiloInit', () => {
-                if (window.liloWebsocket?.logger) {
-                    window.liloWebsocket.logger.setLevels({
-                        info: true,
-                        warn: true,
-                        error: true,
-                        debug: true,
-                        trace: true,
-                    });
+            let liloHostname = 'ws://localhost:55002';
 
-                    console.log('[LogLevel] Overridden logger levels from HTML');
+            function traceControl() {
+                return {
+                    tab: 'dashboard',
+                    configTab: 'lilo',
+                    jsonOutput: '',
+                    svgOutput: '',
+                    configSet: false,
+                    config: {
+                        serial: {},
+                        gateway: {},
+                        license: {},
+                    },
+                    status: {
+                        system: {
+                            websocket: false,
+                            lilotrace_started: false,
+                            serial_connected: false,
+                            gateway_connected: false,
+                            communication_ok: false,
+                        },
+                    },
+                    traceStatus: '-',
+                    websocketStatus: '-',
+                    logOutput: 'Connecting to tracer...',
+                    saveConfig() {
+                        const data = {
+                            license_key: this.config.license.license_key,
+                            mode: this.config.mode,
+                            output_folder: this.config.output_folder,
+                            serial_mode: this.config.serial.mode,
+                            serial_device: this.config.serial.device,
+                            serial_baudrate: this.config.serial.baudrate,
+                            serial_rtscts: this.config.serial.rtscts,
+                            gateway_socketport: this.config.gateway.socketport,
+                            gateway_mode: this.config.gateway.mode,
+                            gateway_parametermode: this.config.gateway.parametermode,
+                            gateway_tracername: this.config.gateway.tracername,
+                            gateway_protocol: this.config.gateway.protocol,
+                            gateway_socketaddress: this.config.gateway.socketaddress,
+                            gateway_tracerconnection: this.config.gateway.tracerconnection,
+                            gateway_tracerport: this.config.gateway.tracerport,
+                            gateway_bps: this.config.gateway.bps,
+                            gateway_parity: this.config.gateway.parity,
+                            gateway_wordlen: this.config.gateway.wordlen,
+                            gateway_stoplen: this.config.gateway.stoplen,
+                            gateway_rtscts: this.config.gateway.rtscts,
+                            gateway_dtrdsr: this.config.gateway.dtrdsr,
+                            gateway_ipaddress: this.config.gateway.ipaddress,
+                            gateway_ipport: this.config.gateway.ipport,
+                        };
+
+                        liloWebsocket.updateConfig(data);
+                    },
+                    submitLicense() {
+                        // 67875a5e-b268-4ee1-9cb5-df3ea5abf14b
+                        liloWebsocket.updateLicense(this.config.license.license_key);
+                    },
+                    init() {
+                        this.addListeners();
+
+                        setTimeout(() => {
+                            this.setShowcase();
+                        }, 1000);
+                    },
+                    async setShowcase() {
+                        const list = [
+                            'frame1',
+                            'frame2',
+                            'frame3',
+                            'frame4',
+                            'frame5',
+                            'frame6',
+                            'frame7',
+                            'frame8',
+                            'frame9',
+                            'frame10',
+                            'frame11',
+                            'frame12',
+                            'frame13',
+                            'frame14',
+                            'frame15',
+                            'frame21',
+                            'frame22',
+                            'frame23',
+                            'frame24',
+                            'frame25',
+                            'frame31',
+                        ];
+
+                        for (let i = 0; i < list.length; i++) {
+                            const item = list[i];
+
+                            const result = await liloWebsocket.getDemoTrace();
+                            document.getElementById(item).dataset.base64 = result.oma.base64;
+
+                            liloWebsocket.renderFrame(item);
+                        }
+                    },
+                    getJson: async function() {
+                        const base64 = document.getElementById('trace_current').dataset.base64;
+
+                        if (base64 == null) {
+                            alert('First make a trace, or request demo trace');
+
+                            return false;
+                        }
+
+                        const json = await liloWebsocket.getJson(base64);
+                        console.log(json);
+                    },
+                    addListeners() {
+                        addEventListener('LiloConnected', (event) => {
+                            console.log(event);
+                            this.status.system.websocket = true;
+                        });
+
+                        addEventListener('LiloSocketStatus', (event) => {
+                            console.log(event);
+                            if (this.configSet === false) {
+                                this.configSet = true;
+                                this.config = event.detail.appconfig;
+
+                                console.log(this.config);
+                            }
+                        });
+
+                        addEventListener('LiloTraceInit', (event) => {
+                            console.log(event);
+                            this.status.system.lilotrace_started = true;
+                        });
+
+                        addEventListener('LiloTraceConnected', (event) => {
+                            console.log(event);
+                            this.status.system.lilotrace_started = true;
+                        });
+
+                        addEventListener('liloTraceDisconnect', (event) => {
+                            console.log(event);
+                            this.status.system.lilotrace_started = false;
+                        });
+
+                        addEventListener('LiloTraceSerialConnected', (event) => {
+                            console.log(event);
+                            this.status.system.serial_connected = true;
+                        });
+
+                        addEventListener('LiloGatewayConnected', (event) => {
+                            console.log(event);
+                            this.status.system.gateway_connected = true;
+                        });
+
+                        addEventListener('LiloTraceCommunication', (event) => {
+                            console.log(event);
+                            this.status.system.communication_ok = true;
+                        });
+
+                        addEventListener('LiloClosed', (event) => {
+                            console.log(event);
+                            this.status.system.websocket = false;
+                            this.status.system.lilotrace_started = false;
+                        });
+
+                        addEventListener('LiloError', (event) => {
+                            console.log(event);
+                            this.status.system.websocket = false;
+                        });
+
+                        addEventListener('LiloTraceStatus', (event) => {
+                            console.log(event);
+                            this.traceStatus = event.detail;
+                        });
+
+                        addEventListener('LiloWebsocketStatus', (event) => {
+                            console.log(event);
+                            this.websocketStatus = event.detail;
+                        });
+
+                        addEventListener('LiloDevices', (event) => {
+                            console.log(event);
+                        });
+
+                        addEventListener('LiloTraceDone', (event) => {
+                            console.log(event);
+
+                            const element = document.getElementById('trace_current');
+                            const width = element.dataset.width;
+
+                            liloWebsocket.setTechnicalFrame('trace_current', event.detail.oma_base64, width);
+                        });
+                    },
                 }
-            });
+            }
         </script>
+        <script type="module" src="src/main.js"></script>
     </body>
 </html>
+

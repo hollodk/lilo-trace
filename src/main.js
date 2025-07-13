@@ -1,18 +1,17 @@
 import { LiloWebSocketManager } from './LiloWebSocketManager.js'
-import { LiloShapeManager } from './LiloShapeManager.js'
+//import { LiloShapeManager } from './LiloShapeManager.js'
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
 const liloWebsocket = new LiloWebSocketManager();
-const liloShape = new LiloShapeManager();
+//const liloShape = new LiloShapeManager();
 
 window.liloWebsocket = liloWebsocket;
-window.liloShape = liloShape;
+//window.liloShape = liloShape;
 
 document.addEventListener('DOMContentLoaded', () => {
     liloWebsocket.init();
-    liloShape.addListeners();
-    liloShape.init();
+    //liloShape.addListeners();
+    //liloShape.init();
 });
-
