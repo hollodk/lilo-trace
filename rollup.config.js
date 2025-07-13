@@ -32,5 +32,36 @@ export default [
                 hook: 'buildStart'
             })
         ]
+    },
+    {
+        input: 'src/LiloApi.js',
+        output: [
+            {
+                file: 'dist/lilo-api.esm.js',
+                format: 'es',
+                sourcemap: true,
+            },
+            {
+                file: 'dist/lilo-api.umd.js',
+                format: 'umd',
+                name: 'LiloApi',
+                sourcemap: true,
+            },
+            {
+                file: 'dist/lilo-api.min.js',
+                format: 'umd',
+                name: 'LiloApi',
+                sourcemap: false,
+                plugins: [terser()],
+            }
+        ],
+        plugins: [
+            copy({
+                targets: [
+                    { src: 'src/LiloApi.js', dest: 'dist', rename: 'lilo-api.raw.js' }
+                ],
+                hook: 'buildStart'
+            })
+        ]
     }
 ];

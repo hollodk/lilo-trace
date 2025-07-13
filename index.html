@@ -724,10 +724,10 @@
                         for (let i = 0; i < list.length; i++) {
                             const item = list[i];
 
-                            const result = await liloWebsocket.getDemoTrace();
+                            const result = await liloApi.getDemoTrace();
                             document.getElementById(item).dataset.base64 = result.oma.base64;
 
-                            liloWebsocket.renderFrame(item);
+                            liloApi.renderFrame(item);
                         }
                     },
                     getJson: async function() {
@@ -739,7 +739,7 @@
                             return false;
                         }
 
-                        const json = await liloWebsocket.getJson(base64);
+                        const json = await liloApi.getJson(base64);
                         console.log(json);
                     },
                     addListeners() {
@@ -819,7 +819,7 @@
                             const element = document.getElementById('trace_current');
                             const width = element.dataset.width;
 
-                            liloWebsocket.setFrame('trace_current', event.detail.oma_base64, width, 'technical');
+                            liloApi.setFrame('trace_current', event.detail.oma_base64, width, 'technical');
                             this.oma = event.detail.oma;
                         });
                     },
@@ -854,14 +854,14 @@
                     index: '1.5',
 
                     async renderConfiguredFrame() {
-                        const result = await liloWebsocket.getDemoTrace();
+                        const result = await liloApi.getDemoTrace();
 
                         let width = 1180;
                         if (this.type == 'face') {
                             width = 500;
                         }
 
-                        const theme = liloWebsocket.getTheme(this.theme);
+                        const theme = liloApi.getTheme(this.theme);
                         theme.path.stroke = this.frameColor;
 
                         const param = {
@@ -883,7 +883,7 @@
                             theme: theme,
                         };
 
-                        const svg = await liloWebsocket.getOmaSvg(param);
+                        const svg = await liloApi.getOmaSvg(param);
                         document.getElementById('configured_frame').innerHTML = svg;
                     },
                 };
