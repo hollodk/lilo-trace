@@ -4,14 +4,9 @@ import { LiloWebSocketManager } from './LiloWebSocketManager.js'
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'bootstrap/dist/js/bootstrap.bundle.min.js';
 
-const liloWebsocket = new LiloWebSocketManager();
-//const liloShape = new LiloShapeManager();
-
+const liloWebsocket = new LiloWebSocketManager(liloHostname);
 window.liloWebsocket = liloWebsocket;
-//window.liloShape = liloShape;
 
 document.addEventListener('DOMContentLoaded', () => {
     liloWebsocket.init();
-    //liloShape.addListeners();
-    //liloShape.init();
 });

@@ -6,7 +6,7 @@ import { LiloLogger } from './LiloLogger.js';
  *
  * OK > License
  * OK > Showcase with data attributes
- * Showcase with themed colors
+ * OK > Showcase with themed colors
  * Logs websocket and trace
  * Buttons
  *  - Start
@@ -18,12 +18,33 @@ import { LiloLogger } from './LiloLogger.js';
  *  - Get JSON
  *  - Status
  */
+
+const THEME_MAP = {
+    yellow: ['#fffde0', '#fff380'],
+    orange: ['#fff2e0', '#ffb980'],
+    red: ['#ffe0e0', '#ffa3a3'],
+    green: ['#e0ffe0', '#adffa3'],
+    teal: ['#e0fffa', '#80ffe5'],
+    blue: ['#e0f7ff', '#a1d4ff'],
+    purple: ['#fbe0ff', '#ffa3f8'],
+    brown: ['#f5e9dd', '#d2a679'],
+    grey: ['#f0f0f0', '#b0b0b0'],
+    'mirror-blue': ['#003366', '#66ccff', true],
+    'mirror-silver': ['#999999', '#e0e0e0', true],
+    'mirror-teal': ['#004d4d', '#80ffe5', true],
+    'mirror-purple': ['#3d0075', '#cc99ff', true],
+    'mirror-rosegold': ['#b76e79', '#ffe5e0', true],
+    'mirror-ice': ['#88e0ef', '#dff9fb', true],
+};
+
 export class LiloWebSocketManager {
-    constructor() {
+    constructor(hostname) {
+        this.hostname = hostname;
         this.reconnectInterval = 3 * 1000;
         this.ws = null;
         this.appKey = null;
-        this.apiUrl = 'https://my.liloconnect.com/api';
+        this.licenseUrl = 'https://my.liloconnect.com/api';
+        this.apiUrl = 'https://www.liloconnect.com:55003/api';
         this.themeColor = 'blue';
         this.logger = new LiloLogger({
             levels: {
@@ -50,8 +71,8 @@ export class LiloWebSocketManager {
             return;
         }
 
-        this.logger.info(`Attempting WebSocket connection to ${liloHostname}`);
-        this.ws = new WebSocket(liloHostname);
+        this.logger.info(`Attempting WebSocket connection to ${this.hostname}`);
+        this.ws = new WebSocket(this.hostname);
 
         this.ws.onopen = () => {
             this.logger.info('WebSocket connection established.');
@@ -64,11 +85,7 @@ export class LiloWebSocketManager {
             this.logger.warn(`WebSocket closed. Reason: ${event.reason || 'unknown'}`);
             this.dispatch('LiloClosed', { reason: event.reason });
 
-            const server = liloHostname;
-
-            //document.getElementById('trace_status').innerHTML = `no connection to trace server, trying to reconnect to ${server}`;
-            //document.getElementById('websocket_status').innerHTML = 'Connection closed to server';
-            this.dispatch('LiloTraceStatus', `no connection to trace server, trying to reconnect to ${server}`);
+            this.dispatch('LiloTraceStatus', `no connection to trace server, trying to reconnect to ${this.hostname}`);
             this.dispatch('LiloWebsocketStatus', 'Connection closed to server');
 
             this.ws = null;
@@ -84,293 +101,130 @@ export class LiloWebSocketManager {
             this.logger.error('WebSocket error occurred', event);
             this.dispatch('LiloError', { event });
 
-            //document.getElementById('trace_status').innerHTML = 'lost connection, an error occurred';
             this.dispatch('LiloTraceClosed', 'lost connection, an error occurred');
             this.ws.close();
         };
 
-        this.ws.onmessage = (event) => {
-            let data;
-            try {
-                data = JSON.parse(event.data);
-            } catch (e) {
-                this.logger.error('Invalid JSON received:', event.data);
-                return;
-            }
-
-            this.logger.debug('Received message:', data);
-
-            const { code, message } = data;
-            const text = `${code} | ${message}`;
-
-            switch (code) {
-                case 100:
-                case 105:
-                    //document.getElementById('websocket_status').innerHTML = text;
-                    this.dispatch('LiloWebsocketStatus', text);
-                    this.logger.info(`Status update received: ${text}`);
-                    break;
-
-                case 110:
-                    //document.getElementById('websocket_status').innerHTML = text;
-                    this.dispatch('LiloTraceConnected', 'LiloTrace is ready');
-                    this.dispatch('LiloWebsocketStatus', text);
-
-                    /*
-                    document.getElementById('rs232_device').value = data.data.device;
-                    document.getElementById('rs232_baudrate').value = data.data.baudrate;
-                    document.getElementById('output_folder').value = data.data.output_folder;
-                    document.getElementById('license_type').innerHTML = data.data.license.type;
-                    document.getElementById('license_is_premium').innerHTML = data.data.license.is_premium;
-                    document.getElementById('license_is_valid').innerHTML = data.data.license.is_valid;
-                    document.getElementById('license_app_key').innerHTML = data.data.license.app_key;
-                    document.getElementById('license_expire_at').innerHTML = data.data.license.expire_at;
-                    */
-
-                    this.appKey = data.data.license.app_key;
-
-                    this.logger.info('License info updated.');
-                    this.dispatch('LiloLicenseReceived', data.data.license);
-
-                    break;
-
-                case 115:
-                    this.dispatch('LiloSocketStatus', data.data);
-                    break;
-
-                case 250:   // standard trace
-                case 255:   // normalized trace
-                    //document.getElementById('trace_status').innerHTML = text;
-                    this.dispatch('LiloTraceStatus', text);
-
-                    if (data.data != null) {
-                        /**
-                        document.getElementById('trace_uuid').value = data.data.uuid;
-                        const oma = data.data.oma;
-                        document.getElementById('oma').innerHTML = oma;
-                        document.getElementById('oma_param').innerHTML = JSON.stringify(data, null, 2);
-                        document.getElementById('current_trace').dataset.base64 = this.encodeBase64Unicode(oma);
-
-                        //this.setTechnicalFrame(data.data.oma_base64, 'current_trace');
-                        this.setFrame(data.data.oma_base64, 'current_trace');
-
-                        if (data.data.url) {
-                            document.getElementById('trace_share').innerHTML = `<a href="${data.data.url}">Download or share trace</a>`;
-                        }
-                        */
-
-                        this.logger.info('Trace data updated with OMA and shape.');
-                        this.dispatch('LiloTraceDone', data.data);
-                    }
-                    break;
-
-                case 260:   // no trace
-                case 500:
-                case 510:
-                case 520:
-                case 530:
-                case 540:
-                case 550:
-                case 552:
-                case 554:
-                case 556:
-                case 558:
-                case 580:
-                    //document.getElementById('trace_status').innerHTML = text;
-                    this.dispatch('LiloTraceStatus', text);
-                    this.logger.warn(`Warning received: ${text}`);
-                    break;
-
-                case 570:
-                    //document.getElementById('trace_status').innerHTML = text;
-                    this.dispatch('LiloTraceStatus', text);
-
-                    //document.getElementById('devices').value = JSON.stringify(data.data, null, 2);
-                    this.dispatch('LiloDevices', data.data);
-
-                    this.logger.info('Device list received and updated.');
-                    this.dispatch('LiloDevicesReceived', data.data);
-
-                    break;
-
-                default:
-                    this.logger.info('Received unhandled message code:', code);
-                    break;
-            }
-        };
+        this.ws.onmessage = ({ data }) => this.handleMessage(data);
     }
 
-    async getJson(base64) {
+    handleMessage(raw) {
+        let data = null;
+
         try {
-            const url = 'http://localhost:3000/api/oma/json';
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    oma: {
-                        base64: base64,
-                    },
-                }),
-            })
-            ;
+            data = JSON.parse(raw);
+        } catch (e) {
+            this.logger.error('Invalid JSON received:', raw);
+            return;
+        }
 
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
+        this.logger.debug('Received message:', data);
 
-            const json = await response.json();
-            return json;
+        const { code, message } = data;
+        const text = `${code} | ${message}`;
 
-        } catch (error) {
-            console.log('Error requesting API');
+        switch (code) {
+            case 100:
+            case 105:
+                this.dispatch('LiloWebsocketStatus', text);
+                this.logger.info(`Status update received: ${text}`);
+                break;
+
+            case 110:
+                this.dispatch('LiloTraceConnected', 'LiloTrace is ready');
+                this.dispatch('LiloWebsocketStatus', text);
+
+                this.appKey = data.data.license.app_key;
+
+                this.logger.info('License info updated.');
+                this.dispatch('LiloLicenseReceived', data.data.license);
+
+                break;
+
+            case 115:
+                this.dispatch('LiloSocketStatus', data.data);
+                break;
+
+            case 250:   // standard trace
+            case 255:   // normalized trace
+                this.dispatch('LiloTraceStatus', text);
+
+                if (data.data != null) {
+
+                    this.logger.info('Trace data updated with OMA and shape.');
+                    this.dispatch('LiloTraceDone', data.data);
+                }
+                break;
+
+            case 260:   // no trace
+            case 500:
+            case 510:
+            case 520:
+            case 530:
+            case 540:
+            case 550:
+            case 552:
+            case 554:
+            case 556:
+            case 558:
+            case 580:
+                this.dispatch('LiloTraceStatus', text);
+                this.logger.warn(`Warning received: ${text}`);
+                break;
+
+            case 570:
+                this.dispatch('LiloTraceStatus', text);
+
+                this.dispatch('LiloDevices', data.data);
+
+                this.logger.info('Device list received and updated.');
+                this.dispatch('LiloDevicesReceived', data.data);
+
+                break;
+
+            default:
+                this.logger.info('Received unhandled message code:', code);
+                break;
         }
     }
 
     getTheme(themeColor = 'blue') {
-        let start = '#e0f7ff';
-        let stop = '#a1d4ff';
-        let mirror = false;
-        let rotation = 'right';
-        let opacity = 0.9;
+        const [start = '#e0f7ff', stop = '#a1d4ff', mirror = false] = THEME_MAP[themeColor] || [];
+        const opacity = mirror ? 1 : 0.9;
 
-        switch (themeColor) {
-            case 'yellow':
-                start = '#fffde0';
-                stop = '#fff380';
-                break;
-
-            case 'orange':
-                start = '#fff2e0';
-                stop = '#ffb980';
-                break;
-
-            case 'red':
-                start = '#ffe0e0';
-                stop = '#ffa3a3';
-                break;
-
-            case 'green':
-                start = '#e0ffe0';
-                stop = '#adffa3';
-                break;
-
-            case 'teal':
-                start = '#e0fffa';
-                stop = '#80ffe5';
-                break;
-
-            case 'blue':
-                start = '#e0f7ff';
-                stop = '#a1d4ff';
-                break;
-
-            case 'purple':
-                start = '#fbe0ff';
-                stop = '#ffa3f8';
-                break;
-
-            case 'brown':
-                start = '#f5e9dd';
-                stop = '#d2a679';
-                break;
-
-            case 'grey':
-                start = '#f0f0f0';
-                stop = '#b0b0b0';
-                break;
-
-            case 'mirror-blue':
-                start = '#003366';
-                stop = '#66ccff';
-                mirror = true;
-                opacity = 1;
-                break;
-
-            case 'mirror-silver':
-                start = '#999999';
-                stop = '#e0e0e0	';
-                mirror = true;
-                opacity = 1;
-                break;
-
-            case 'mirror-teal':
-                start = '#004d4d';
-                stop = '#80ffe5';
-                mirror = true;
-                opacity = 1;
-                break;
-
-            case 'mirror-purple':
-                start = '#3d0075';
-                stop = '#cc99ff';
-                mirror = true;
-                opacity = 1;
-                break;
-
-            case 'mirror-rosegold':
-                start = '#b76e79';
-                stop = '#ffe5e0';
-                mirror = true;
-                opacity = 1;
-                break;
-
-            case 'mirror-ice':
-                start = '#88e0ef';
-                stop = '#dff9fb';
-                mirror = true;
-                opacity = 1;
-                break;
-
-        }
-
-        const theme = {
-            uncut: {
-                fill: '#f0faff', // light blue
-                stroke: '#999', // grey
-                width: 2,
-            },
-            text: {
-                size: '16px',
-                color: '#333',
-            },
-            path: {
-                width: 1,
-                stroke: '#333',
-            },
-            lens: {
-                gradient: {
-                    start: start,
-                    stop: stop,
-                    rotation: rotation,
-                },
-                mirror: mirror,
-                opacity: opacity,
-            },
-            optical_center: {
-                radius: 20,
-                stroke: 'green',
-            },
+        return {
+            uncut: { fill: '#f0faff', stroke: '#999', width: 2 },
+            text: { size: '16px', color: '#333' },
+            path: { width: 1, stroke: '#333' },
+            lens: { gradient: { start, stop, rotation: 'right' }, mirror, opacity },
+            optical_center: { radius: 20, stroke: 'green' },
             theme: themeColor,
         };
+    }
 
-        return theme;
+    parseElementDataset(element) {
+        return {
+            width: element.dataset.width,
+            type: element.dataset.type,
+            base64: element.dataset.base64,
+            theme: element.dataset.theme,
+            frame: element.dataset.frame || '#000000',
+        };
     }
 
     renderFrame(targetId) {
         const element = document.getElementById(targetId);
+        if (!element) return;
 
-        const width = element.dataset.width;
-        const type = element.dataset.type;
-        const base64 = element.dataset.base64;
-        const theme = element.dataset.theme;
-
-        this.setFrame(targetId, base64, width, type, theme);
+        const { base64, width, type, theme, frame } = this.parseElementDataset(element);
+        this.setFrame(targetId, base64, width, type, theme, frame);
     }
 
-    setFrame(targetId, base64, width, type, theme = 'blue') {
-        const url = 'http://localhost:3000/api/oma/svg';
+    setFrame(targetId, base64, width, type, theme = 'blue', frame = '#000000') {
+        if (!base64 || !width) {
+            this.logger.warn('Missing base64 or width for frame rendering.');
+            return;
+        }
 
         const param = {
             oma: {
@@ -391,25 +245,60 @@ export class LiloWebSocketManager {
             theme: this.getTheme(theme),
         };
 
-        this.attachFrame(targetId, url, param);
+        if (frame) {
+            param.theme.path.stroke = frame;
+        }
+
+        this.attachFrame(targetId, param);
     }
 
-    attachFrame(targetId, url, param) {
-        fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
+    async attachFrame(targetId, param) {
+        const svg = await this.getOmaSvg(param);
+
+        const element = document.getElementById(targetId);
+        element.innerHTML = svg;
+    }
+
+    async getJson(oma) {
+        const url = this.apiUrl+'/oma/json';
+
+        const param = {
+            oma: {
+                base64: this.encodeBase64Unicode(oma),
             },
-            body: JSON.stringify(param),
-        })
-            .then(res => res.json())
-            .then(json => {
-                const element = document.getElementById(targetId);
-                element.innerHTML = json.result;
-            })
-            .catch(error => {
-                console.error(error);
-            });
+        };
+
+        const json = await this.liloRequest(url, 'POST', param);
+        return json;
+    }
+
+    async getOmaSvg(param) {
+        const url = this.apiUrl+'/oma/svg';
+
+        const json = await this.liloRequest(url, 'POST', param);
+        return json.result;
+    }
+
+    async getDemoTrace() {
+        const url = this.apiUrl+'/oma/demo';
+
+        const json = await this.liloRequest(url);
+        return json.result;
+    }
+
+    async liloRequest(url, method = 'GET', param = null) {
+        try {
+            const opts = {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                ...(param && { body: JSON.stringify(param) }),
+            };
+            const res = await fetch(url, opts);
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return await res.json();
+        } catch (err) {
+            console.error('API Error:', err);
+        }
     }
 
     websocketSend(type, data = null) {
@@ -446,26 +335,6 @@ export class LiloWebSocketManager {
     liloTraceRestart() {
         this.logger.info('Restarting trace...');
         this.websocketSend('restart');
-    }
-
-    async getDemoTrace() {
-        try {
-            this.logger.info('Requesting demo trace...');
-
-            const url = 'http://localhost:3000/api/oma/demo';
-            const response = await fetch(url);
-
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}`);
-            }
-
-            const json = await response.json();
-            return json.result;
-
-        } catch (error) {
-            console.log(error);
-            console.log('Error requesting API');
-        }
     }
 
     resendTrace() {
@@ -545,8 +414,8 @@ export class LiloWebSocketManager {
             ? 'wss://www.liloconnect.com:55002'
             : 'ws://localhost:55002';
 
-        liloHostname = server;
-        this.logger.debug(`WebSocket server set to ${server}`);
+        this.hostname = server;
+        this.logger.debug(`WebSocket server set to ${this.hostname}`);
     }
 
     dispatch(eventName, detail = {}) {

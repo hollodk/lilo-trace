@@ -56,7 +56,7 @@
                         <button class="btn btn-secondary" @click="liloWebsocket.resendTrace()">🔁 Resend</button>
                         <button class="btn btn-info" @click="liloWebsocket.requestDemoTrace()">🎞️ Demo</button>
                         <button class="btn btn-warning" @click="liloWebsocket.normalizeTrace()">🧹 Normalize</button>
-                        <button class="btn btn-dark" @click="liloWebsocket.json()">🧾 Get JSON</button>
+                        <button class="btn btn-dark" @click="getJson()">🧾 Get JSON</button>
                         <button class="btn btn-dark" @click="liloWebsocket.getWebsocketStatus()">🧾 Status</button>
                     </div>
                 </div>
@@ -161,6 +161,13 @@
                     </div>
                 </div>
 
+                <div class="row">
+                    <div class="col-md-6">
+                        <textarea class="form-control" x-model="oma"></textarea>
+                    </div>
+                    <div class="col-md-6">
+                    </div>
+                </div>
             </div>
 
             <!-- Configuration Section -->
@@ -453,43 +460,28 @@
                     </div>
                 </div>
 
-                <div class="col-md-4 mb-2">
-                    <div class="card shadow-sm">
-                        <div class="card-body" id="frame21" data-type="face" data-width="380"></div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-2">
-                    <div class="card shadow-sm">
-                        <div class="card-body" id="frame22" data-type="face" data-width="380"></div>
-                    </div>
-                </div>
-
-                <div class="col-md-4 mb-2">
-                    <div class="card shadow-sm">
-                        <div class="card-body" id="frame23" data-type="face" data-width="380"></div>
-                    </div>
-                </div>
-
-                <div class="col-md-6 mb-2">
-                    <div class="card shadow-sm">
-                        <div class="card-body" id="frame24" data-type="face" data-width="580"></div>
-                    </div>
-                </div>
-
-                <div class="col-md-6 mb-2">
-                    <div class="card shadow-sm">
-                        <div class="card-body" id="frame25" data-type="face" data-width="580"></div>
-                    </div>
-                </div>
-
                 <div class="col-md-12 mb-2">
                     <!-- Large SVG viewer -->
                     <div class="card border-dark shadow-sm my-4">
-                        <div class="card-header bg-dark text-white">
-                            🖼️ Live SVG Visualization
-                        </div>
-                        <div class="card-body" id="frame31" data-type="technical" data-width="1180"></div>
+                        <div class="card-body" id="frame21" data-type="technical" data-width="1180"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame31" data-type="face" data-width="380" data-theme="orange"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame32" data-type="face" data-width="380" data-theme="teal"></div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-2">
+                    <div class="card shadow-sm">
+                        <div class="card-body" id="frame33" data-type="face" data-width="380" data-theme="blue" data-frame="#e0e0e0"></div>
                     </div>
                 </div>
             </div>
@@ -648,6 +640,7 @@
                     configTab: 'lilo',
                     jsonOutput: '',
                     svgOutput: '',
+                    oma: null,
                     configSet: false,
                     config: {
                         serial: {},
@@ -696,7 +689,6 @@
                         liloWebsocket.updateConfig(data);
                     },
                     submitLicense() {
-                        // 67875a5e-b268-4ee1-9cb5-df3ea5abf14b
                         liloWebsocket.updateLicense(this.config.license.license_key);
                     },
                     init() {
@@ -724,11 +716,9 @@
                             'frame14',
                             'frame15',
                             'frame21',
-                            'frame22',
-                            'frame23',
-                            'frame24',
-                            'frame25',
                             'frame31',
+                            'frame32',
+                            'frame33',
                         ];
 
                         for (let i = 0; i < list.length; i++) {
@@ -741,7 +731,7 @@
                         }
                     },
                     getJson: async function() {
-                        const base64 = document.getElementById('trace_current').dataset.base64;
+                        const base64 = this.oma;
 
                         if (base64 == null) {
                             alert('First make a trace, or request demo trace');
@@ -829,7 +819,8 @@
                             const element = document.getElementById('trace_current');
                             const width = element.dataset.width;
 
-                            liloWebsocket.setTechnicalFrame('trace_current', event.detail.oma_base64, width);
+                            liloWebsocket.setFrame('trace_current', event.detail.oma_base64, width, 'technical');
+                            this.oma = event.detail.oma;
                         });
                     },
                 }
@@ -861,6 +852,7 @@
                     frameColor: '#f0f0f0',
                     type: 'frame',
                     index: '1.5',
+
                     async renderConfiguredFrame() {
                         const result = await liloWebsocket.getDemoTrace();
 
@@ -879,23 +871,23 @@
                                 left: { ...this.left },
                                 right: { ...this.right },
                             },
+                            lens: {
+                                right: {
+                                    index: this.index,
+                                },
+                                left: {
+                                    index: this.index,
+                                },
+                            },
                             type: this.type,
                             theme: theme,
                         };
 
-                        console.log(param);
-                        const response = await fetch('http://localhost:3000/api/oma/svg', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify(param),
-                        });
-
-                        const data = await response.json();
-                        document.getElementById('configured_frame').innerHTML = data.result;
+                        const svg = await liloWebsocket.getOmaSvg(param);
+                        document.getElementById('configured_frame').innerHTML = svg;
                     },
                 };
             }
-
         </script>
         <script type="module" src="src/main.js"></script>
     </body>
