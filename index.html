@@ -37,6 +37,7 @@
                 <li class="nav-item"><a class="nav-link" :class="{active: tab === 'config'}" @click="tab = 'config'" href="#">Config</a></li>
                 <li class="nav-item"><a class="nav-link" :class="{active: tab === 'license'}" @click="tab = 'license'" href="#">License</a></li>
                 <li class="nav-item"><a class="nav-link" :class="{active: tab === 'showcase'}" @click="tab = 'showcase'" href="#">Showcase</a></li>
+                <li class="nav-item"><a class="nav-link" :class="{active: tab === 'configurator'}" @click="tab = 'configurator'" href="#">Configurator</a></li>
                 <li class="nav-item"><a class="nav-link" :class="{active: tab === 'logs'}" @click="tab = 'logs'" href="#">Logs</a></li>
             </ul>
 
@@ -423,7 +424,7 @@
                 </div>
                 <div class="col-md-4 mb-2">
                     <div class="card shadow-sm">
-                        <div class="card-body" id="frame10" data-type="simple" data-width="380" data-theme="mirror-blue"></div>
+                        <div class="card-body" id="frame10" data-type="simple" data-width="380" data-theme="mirror-rosegold"></div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-2">
@@ -433,22 +434,22 @@
                 </div>
                 <div class="col-md-4 mb-2">
                     <div class="card shadow-sm">
-                        <div class="card-body" id="frame12" data-type="simple" data-width="380" data-theme="mirror-purple"></div>
+                        <div class="card-body" id="frame12" data-type="simple" data-width="380" data-theme="mirror-ice"></div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-2">
                     <div class="card shadow-sm">
-                        <div class="card-body" id="frame13" data-type="simple" data-width="380" data-theme="mirror-silver"></div>
+                        <div class="card-body" id="frame13" data-type="simple" data-width="380" data-theme="mirror-blue"></div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-2">
                     <div class="card shadow-sm">
-                        <div class="card-body" id="frame14" data-type="simple" data-width="380" data-theme="mirror-rosegold"></div>
+                        <div class="card-body" id="frame14" data-type="simple" data-width="380" data-theme="mirror-purple"></div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-2">
                     <div class="card shadow-sm">
-                        <div class="card-body" id="frame15" data-type="simple" data-width="380" data-theme="mirror-ice"></div>
+                        <div class="card-body" id="frame15" data-type="simple" data-width="380" data-theme="mirror-silver"></div>
                     </div>
                 </div>
 
@@ -489,6 +490,140 @@
                             🖼️ Live SVG Visualization
                         </div>
                         <div class="card-body" id="frame31" data-type="technical" data-width="1180"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row my-5" x-show="tab === 'configurator'">
+                <div class="card mt-5 shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        🧪 Live Lens Configurator
+                    </div>
+                    <div class="card-body" x-data="lensConfigurator()">
+
+                        <!-- Frame Import Buttons -->
+                        <div class="card mb-4 shadow-sm">
+                            <div class="card-header bg-dark text-white">
+                                ⬇️ Import Demo Frames
+                            </div>
+                            <div class="card-body d-flex flex-wrap gap-2">
+                                <button class="btn btn-outline-primary" @click="importFrame('round')">Round</button>
+                                <button class="btn btn-outline-secondary" @click="importFrame('square')">Square</button>
+                                <button class="btn btn-outline-success" @click="importFrame('aviator')">Aviator</button>
+                                <button class="btn btn-outline-warning" @click="importFrame('cat')">Cat Eye</button>
+                                <button class="btn btn-outline-info" @click="importFrame('sport')">Sport Shield</button>
+                                <button class="btn btn-outline-dark" @click="importFrame('rimless')">Rimless</button>
+                            </div>
+                        </div>
+
+                        <!-- Prescription & Measurements -->
+                        <div class="row g-4">
+                            <!-- Left Eye -->
+                            <div class="col-md-6">
+                                <h6 class="mb-3">👁️ Left Eye</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label">PD (mm)</label>
+                                        <input type="number" class="form-control" x-model.number="left.pd" min="20" max="40" step="0.5">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Height (mm)</label>
+                                        <input type="number" class="form-control" x-model.number="left.height" min="0" max="35" step="0.5">
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-3">
+                                        <label class="form-label">SPH</label>
+                                        <input type="number" class="form-control" x-model.number="left.sph" step="0.25">
+                                    </div>
+                                    <div class="col-3">
+                                        <label class="form-label">CYL</label>
+                                        <input type="number" class="form-control" x-model.number="left.cyl" step="0.25">
+                                    </div>
+                                    <div class="col-3">
+                                        <label class="form-label">AXIS</label>
+                                        <input type="number" class="form-control" x-model.number="left.axis" min="0" max="180">
+                                    </div>
+                                    <div class="col-3">
+                                        <label class="form-label">ADD</label>
+                                        <input type="number" class="form-control" x-model.number="left.add" step="0.25">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Right Eye -->
+                            <div class="col-md-6">
+                                <h6 class="mb-3">👁️ Right Eye</h6>
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label class="form-label">PD (mm)</label>
+                                        <input type="number" class="form-control" x-model.number="right.pd" min="20" max="40" step="0.5">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label">Height (mm)</label>
+                                        <input type="number" class="form-control" x-model.number="right.height" min="0" max="35" step="0.5">
+                                    </div>
+                                </div>
+                                <div class="row g-2 mt-2">
+                                    <div class="col-3">
+                                        <label class="form-label">SPH</label>
+                                        <input type="number" class="form-control" x-model.number="right.sph" step="0.25">
+                                    </div>
+                                    <div class="col-3">
+                                        <label class="form-label">CYL</label>
+                                        <input type="number" class="form-control" x-model.number="right.cyl" step="0.25">
+                                    </div>
+                                    <div class="col-3">
+                                        <label class="form-label">AXIS</label>
+                                        <input type="number" class="form-control" x-model.number="right.axis" min="0" max="180">
+                                    </div>
+                                    <div class="col-3">
+                                        <label class="form-label">ADD</label>
+                                        <input type="number" class="form-control" x-model.number="right.add" step="0.25">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Appearance & Rendering -->
+                        <div class="row mt-4 g-3 align-items-end">
+                            <div class="col-md-3">
+                                <label class="form-label">Theme</label>
+                                <select class="form-select" x-model="theme">
+                                    <template x-for="t in themes" :key="t">
+                                        <option :value="t" x-text="t"></option>
+                                    </template>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Frame Color</label>
+                                <input type="color" class="form-control form-control-color" x-model="frameColor">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Type</label>
+                                <select class="form-select" x-model="type">
+                                    <option value="frame">Frame</option>
+                                    <option value="technical">Technical</option>
+                                    <option value="face">Face</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label">Index</label>
+                                <select class="form-select" x-model="index">
+                                    <option value="1.5">1.5</option>
+                                    <option value="1.6">1.6</option>
+                                    <option value="1.67">1.67</option>
+                                    <option value="1.7">1.7</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="text-end mt-4">
+                            <button class="btn btn-success" @click="renderConfiguredFrame()">🔄 Render Configured Frame</button>
+                        </div>
+
+                        <!-- Output -->
+                        <div class="border mt-4 p-3" style="min-height: 300px; background: #f8f9fa;text-align:center" id="configured_frame" data-type="simple" data-width="1000"></div>
                     </div>
                 </div>
             </div>
@@ -699,6 +834,68 @@
                     },
                 }
             }
+
+            function lensConfigurator() {
+                return {
+                    left: {
+                        pd: 30,
+                        height: 18,
+                        sph: -1.50,
+                        cyl: -0.75,
+                        axis: 90,
+                        add: 2.0,
+                    },
+                    right: {
+                        pd: 30,
+                        height: 18,
+                        sph: -1.25,
+                        cyl: -0.50,
+                        axis: 85,
+                        add: 2.0,
+                    },
+                    theme: 'blue',
+                    themes: [
+                        'blue', 'yellow', 'orange', 'red', 'green', 'teal', 'purple', 'brown', 'grey',
+                        'mirror-blue', 'mirror-teal', 'mirror-purple', 'mirror-silver', 'mirror-rosegold', 'mirror-ice'
+                    ],
+                    frameColor: '#f0f0f0',
+                    type: 'frame',
+                    index: '1.5',
+                    async renderConfiguredFrame() {
+                        const result = await liloWebsocket.getDemoTrace();
+
+                        let width = 1180;
+                        if (this.type == 'face') {
+                            width = 500;
+                        }
+
+                        const theme = liloWebsocket.getTheme(this.theme);
+                        theme.path.stroke = this.frameColor;
+
+                        const param = {
+                            oma: { base64: result.oma.base64 },
+                            dimension: { width: width },
+                            exam: {
+                                left: { ...this.left },
+                                right: { ...this.right },
+                            },
+                            type: this.type,
+                            theme: theme,
+                        };
+
+                        console.log(param);
+                        const response = await fetch('http://localhost:3000/api/oma/svg', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(param),
+                        });
+
+                        const data = await response.json();
+                        document.getElementById('configured_frame').innerHTML = data.result;
+                    },
+                };
+            }
+
         </script>
         <script type="module" src="src/main.js"></script>
     </body>

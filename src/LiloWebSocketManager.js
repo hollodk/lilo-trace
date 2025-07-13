@@ -233,6 +233,7 @@ export class LiloWebSocketManager {
         let stop = '#a1d4ff';
         let mirror = false;
         let rotation = 'right';
+        let opacity = 0.9;
 
         switch (themeColor) {
             case 'yellow':
@@ -284,36 +285,42 @@ export class LiloWebSocketManager {
                 start = '#003366';
                 stop = '#66ccff';
                 mirror = true;
+                opacity = 1;
                 break;
 
             case 'mirror-silver':
                 start = '#999999';
                 stop = '#e0e0e0	';
                 mirror = true;
+                opacity = 1;
                 break;
 
             case 'mirror-teal':
                 start = '#004d4d';
                 stop = '#80ffe5';
                 mirror = true;
+                opacity = 1;
                 break;
 
             case 'mirror-purple':
                 start = '#3d0075';
                 stop = '#cc99ff';
                 mirror = true;
+                opacity = 1;
                 break;
 
             case 'mirror-rosegold':
                 start = '#b76e79';
                 stop = '#ffe5e0';
                 mirror = true;
+                opacity = 1;
                 break;
 
             case 'mirror-ice':
                 start = '#88e0ef';
                 stop = '#dff9fb';
                 mirror = true;
+                opacity = 1;
                 break;
 
         }
@@ -339,6 +346,7 @@ export class LiloWebSocketManager {
                     rotation: rotation,
                 },
                 mirror: mirror,
+                opacity: opacity,
             },
             optical_center: {
                 radius: 20,
@@ -358,11 +366,7 @@ export class LiloWebSocketManager {
         const base64 = element.dataset.base64;
         const theme = element.dataset.theme;
 
-        if (type == 'face') {
-            this.setFrameFace(targetId, base64, width, theme);
-        } else {
-            this.setFrame(targetId, base64, width, type, theme);
-        }
+        this.setFrame(targetId, base64, width, type, theme);
     }
 
     setFrame(targetId, base64, width, type, theme = 'blue') {
@@ -384,31 +388,6 @@ export class LiloWebSocketManager {
                 },
             },
             type: type,
-            theme: this.getTheme(theme),
-        };
-
-        this.attachFrame(targetId, url, param);
-    }
-
-    setFrameFace(targetId, base64, width, theme = 'blue') {
-        const url = 'http://localhost:3000/api/oma/svg-face';
-
-        const param = {
-            oma: {
-                base64: base64,
-            },
-            dimension: {
-                width: width,
-            },
-            exam: {
-                right: {
-                    pd: 30,
-                },
-                left: {
-                    pd: 30,
-                },
-            },
-            type: 'simple',
             theme: this.getTheme(theme),
         };
 
