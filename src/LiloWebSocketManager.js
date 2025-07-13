@@ -13,9 +13,9 @@ import { LiloLogger } from './LiloLogger.js';
  *  - Stop
  *  - Restart
  *  - Resend
- *  - Demo
+ *  - OK > Demo
  *  - Normalize
- *  - Get JSON
+ *  - OK > Get JSON
  *  - Status
  */
 
@@ -43,7 +43,6 @@ export class LiloWebSocketManager {
         this.reconnectInterval = 3 * 1000;
         this.ws = null;
         this.appKey = null;
-        this.licenseUrl = 'https://my.liloconnect.com/api';
         this.apiUrl = 'https://www.liloconnect.com:55003/api';
         this.themeColor = 'blue';
         this.logger = new LiloLogger({
@@ -435,4 +434,8 @@ export class LiloWebSocketManager {
 
         this.updateConfig(data);
     }
+}
+
+if (typeof window !== 'undefined') {
+    window.LiloWebSocketManager = LiloWebSocketManager; // for CDN/global use
 }
