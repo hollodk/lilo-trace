@@ -39,6 +39,7 @@ export class LiloApi {
     constructor() {
         this.appKey = null;
         this.apiUrl = 'https://www.liloconnect.com:55003/api';
+        //this.apiUrl = 'http://localhost:3000/api';
         this.themeColor = 'blue';
     }
 
@@ -120,12 +121,12 @@ export class LiloApi {
         return json;
     }
 
-    async getOmaSvg(oma, width, param) {
+    async getOmaSvg(oma, width = 600, param = {}) {
         const json = await this.getOmaSvgBase64(this.encodeBase64Unicode(oma), width, param);
         return json;
     }
 
-    async getOmaSvgBase64(oma, width, param) {
+    async getOmaSvgBase64(oma, width = 600, param = {}) {
         const url = this.apiUrl+'/oma/svg';
 
         param.oma = {

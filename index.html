@@ -579,7 +579,7 @@
 
                         <!-- Appearance & Rendering -->
                         <div class="row mt-4 g-3 align-items-end">
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="form-label">Theme</label>
                                 <select class="form-select" x-model="theme">
                                     <template x-for="t in themes" :key="t">
@@ -587,11 +587,7 @@
                                     </template>
                                 </select>
                             </div>
-                            <div class="col-md-3">
-                                <label class="form-label">Frame Color</label>
-                                <input type="color" class="form-control form-control-color" x-model="frameColor">
-                            </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="form-label">Type</label>
                                 <select class="form-select" x-model="type">
                                     <option value="frame">Frame</option>
@@ -599,7 +595,7 @@
                                     <option value="face">Face</option>
                                 </select>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-4">
                                 <label class="form-label">Index</label>
                                 <select class="form-select" x-model="index">
                                     <option value="1.5">1.5</option>
@@ -608,6 +604,103 @@
                                     <option value="1.7">1.7</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div class="row mt-3 g-3" x-show="showFaceOptions()">
+                            <div class="col-md-4">
+                                <label class="form-label">Gender</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <select x-model="gender" class="form-control">
+                                        <option value="female">Woman</option>
+                                        <option value="man">Male</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Headshape</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <select x-model="headshape" class="form-control">
+                                        <option value="diamond">Diamond</option>
+                                        <option value="heart">Heart</option>
+                                        <option value="oblong">Oblong</option>
+                                        <option value="oval">Oval</option>
+                                        <option value="round">Round</option>
+                                        <option value="square">Square</option>
+                                        <option value="triangle">Triangle</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label">Skin Color</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <template x-for="tone in skinAndLips" :key="tone.key">
+                                        <button type="button"
+                                                class="btn btn-sm border"
+                                                :style="`background-color: ${tone.skinHex};`"
+                                                @click="skinColor = tone.key"
+                                                :class="{'border-3 border-dark': selectedSkin === tone.skinHex}"
+                                                :title="tone.skinName">
+                                            &#160;
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Eye Color</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <template x-for="color in eyeColors" :key="color.key">
+                                        <button type="button"
+                                                class="btn btn-sm border"
+                                                :style="`background-color: ${color.hex};`"
+                                                @click="eyeColor = color.key"
+                                                :class="{'border-3 border-dark': eyeColor === color.hex}"
+                                                :title="color.name">
+                                            &#160;
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Frame Color</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <template x-for="color in [
+                                                     // Neutrals & Blacks
+                                                     '#000000', '#1a1a1a', '#333333', '#4d4d4d',
+                                                     // Whites & Grays
+                                                     '#ffffff', '#f0f0f0', '#cccccc', '#999999',
+                                                     // Browns & Earth
+                                                     '#8b5e3c', '#a0522d', '#d2b48c', '#b8860b',
+                                                     // Reds & Pinks
+                                                     '#ff4d4f', '#dc143c', '#d87093', '#ff69b4',
+                                                     // Oranges & Yellows
+                                                     '#ff8c00', '#ffa500', '#ffd700', '#f5deb3',
+                                                     // Greens
+                                                     '#228b22', '#6b8e23', '#9acd32', '#7fffd4',
+                                                     // Blues
+                                                     '#1e90ff', '#4682b4', '#6495ed', '#87ceeb',
+                                                     // Purples
+                                                     '#9370db', '#8a2be2', '#ba55d3', '#dda0dd',
+                                                     // Teals & Aquas
+                                                     '#008080', '#00ced1', '#20b2aa', '#40e0d0',
+                                                     // Metallics & Mirror-like
+                                                     '#c0c0c0', '#d4af37', '#b87333', '#a9a9a9'
+                                                     ]" :key="color">
+                                        <button type="button"
+                                                class="btn btn-sm border"
+                                                :style="`background-color: ${color}`"
+                                                @click="frameColor = color"
+                                                :class="{'border-3 border-dark': frameColor === color}"
+                                                :title="color">
+                                            &#160;
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+
                         </div>
 
                         <div class="text-end mt-4">
@@ -850,11 +943,114 @@
                         add: 2.0,
                     },
                     theme: 'blue',
+                    skinColor: 'light_beige',
+                    eyeColor: 'steel_blue',
+                    headshape: 'diamond',
+                    gender: 'female',
+                    showFaceOptions() {
+                        return this.type === 'face';
+                    },
                     themes: [
                         'blue', 'yellow', 'orange', 'red', 'green', 'teal', 'purple', 'brown', 'grey',
                         'mirror-blue', 'mirror-teal', 'mirror-purple', 'mirror-silver', 'mirror-rosegold', 'mirror-ice'
                     ],
-                    frameColor: '#f0f0f0',
+                    eyeColors: [
+                        { key: "ice_blue", name: "Ice Blue", hex: "#d0e7f9" },
+                        { key: "light_blue", name: "Light Blue", hex: "#a0c8e0" },
+                        { key: "steel_blue", name: "Steel Blue", hex: "#6a9ecf" },
+                        { key: "aquamarine", name: "Aquamarine Blue", hex: "#5a8f91" },
+                        { key: "green", name: "Green", hex: "#789262" },
+                        { key: "hazel", name: "Hazel Green", hex: "#8e9b4e" },
+                        { key: "olive", name: "Olive Green", hex: "#708238" },
+                        { key: "amber", name: "Amber", hex: "#a97835" },
+                        { key: "golden_brown", name: "Golden Brown", hex: "#996633" },
+                        { key: "medium_brown", name: "Medium Brown", hex: "#6b4423" },
+                        { key: "chestnut", name: "Chestnut Brown", hex: "#4e2e1e" },
+                        { key: "dark_brown", name: "Dark Brown", hex: "#3b2515" },
+                        { key: "black_brown", name: "Black-Brown", hex: "#23160d" },
+                        { key: "slate_gray", name: "Slate Gray", hex: "#778899" },
+                        { key: "violet_gray", name: "Violet-Gray", hex: "#837d92" },
+                    ],
+                    skinAndLips: [
+                        {
+                            key: "porcelain", skinName: "Porcelain", skinHex: "#fceee2",
+                            lipName: "Soft Petal", lipHex: "#f4c2b3",
+                            eyebrowName: "Soft Taupe", eyebrowHex: "#bca18d",
+                        },
+                        {
+                            key: "alabaster", skinName: "Alabaster", skinHex: "#fbe8d3",
+                            lipName: "Light Coral", lipHex: "#f2a99b",
+                            eyebrowName: "Ash Blonde", eyebrowHex: "#c8b8a6",
+                        },
+                        {
+                            key: "ivory", skinName: "Ivory", skinHex: "#f3dcc4",
+                            lipName: "Peach Blush", lipHex: "#eca59c",
+                            eyebrowName: "Light Brown", eyebrowHex: "#a3856d",
+                        },
+                        {
+                            key: "light_beige", skinName: "Light Beige", skinHex: "#ecd2b9",
+                            lipName: "Rosy Nude", lipHex: "#e49688",
+                            eyebrowName: "Warm Brown", eyebrowHex: "#946f51",
+                        },
+                        {
+                            key: "warm_sand", skinName: "Warm Sand", skinHex: "#e1b899",
+                            lipName: "Dusty Rose", lipHex: "#cc7a6f",
+                            eyebrowName: "Golden Brown", eyebrowHex: "#7d5c3b",
+                        },
+                        {
+                            key: "honey", skinName: "Honey", skinHex: "#d6a77a",
+                            lipName: "Terracotta Rose", lipHex: "#c86b5b",
+                            eyebrowName: "Caramel Brown", eyebrowHex: "#6f4a2e",
+                        },
+                        {
+                            key: "almond", skinName: "Almond", skinHex: "#c99a74",
+                            lipName: "Muted Cinnamon", lipHex: "#b95f4b",
+                            eyebrowName: "Chestnut Brown", eyebrowHex: "#5f3c25",
+                        },
+                        {
+                            key: "caramel", skinName: "Caramel", skinHex: "#b97d5b",
+                            lipName: "Spiced Rosewood", lipHex: "#a65243",
+                            eyebrowName: "Deep Auburn", eyebrowHex: "#512c1b",
+                        },
+                        {
+                            key: "bronze", skinName: "Bronze", skinHex: "#a36b4f",
+                            lipName: "Mahogany Pink", lipHex: "#934a3b",
+                            eyebrowName: "Warm Mocha", eyebrowHex: "#4a2f20",
+                        },
+                        {
+                            key: "cinnamon", skinName: "Cinnamon", skinHex: "#935e3a",
+                            lipName: "Burnt Sienna", lipHex: "#81392b",
+                            eyebrowName: "Dark Mahogany", eyebrowHex: "#3d2315",
+                        },
+                        {
+                            key: "chestnut", skinName: "Chestnut", skinHex: "#804c2c",
+                            lipName: "Warm Clay", lipHex: "#6d2f23",
+                            eyebrowName: "Dark Brown", eyebrowHex: "#2d1b11",
+                        },
+                        {
+                            key: "umber", skinName: "Umber", skinHex: "#6b3f26",
+                            lipName: "Chocolate Mauve", lipHex: "#5a2821",
+                            eyebrowName: "Ebony Brown", eyebrowHex: "#1e1209",
+                        },
+                        {
+                            key: "espresso", skinName: "Espresso", skinHex: "#4d2c1d",
+                            lipName: "Mulberry Brown", lipHex: "#4a1f1a",
+                            eyebrowName: "Soft Black", eyebrowHex: "#1a0f0a",
+                        },
+                        {
+                            key: "cocoa", skinName: "Cocoa", skinHex: "#3b2213",
+                            lipName: "Cocoa Plum", lipHex: "#3b1914",
+                            eyebrowName: "Natural Black", eyebrowHex: "#120b07",
+                        },
+                        {
+                            key: "onyx", skinName: "Onyx", skinHex: "#1f120a",
+                            lipName: "Blackberry", lipHex: "#2d1010",
+                            eyebrowName: "Jet Black", eyebrowHex: "#000000",
+                        },
+                    ],
+                    selectedSkin: 'light_beige',
+                    eyeColor: 'steel_blue',
+                    frameColor: '#a0522d',
                     type: 'frame',
                     index: '1.5',
 
@@ -884,6 +1080,18 @@
                             },
                             type: this.type,
                             theme: theme,
+                            avatar: {
+                                gender: this.gender,
+                                face: {
+                                    type: this.headshape,
+                                },
+                                skin: {
+                                    color: this.skinColor,
+                                },
+                                eye: {
+                                    color: this.eyeColor,
+                                },
+                            },
                         };
 
                         const svg = await liloApi.getOmaSvgBase64(result.oma.base64, width, param);

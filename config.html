@@ -1,0 +1,690 @@
+<html>
+    <head>
+        <title>LiloConnect - Tracesoftware</title>
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    </head>
+    <body>
+        <div class="container-fluid">
+
+            <p>Version: <span id="app-version"></span></p>
+
+            <a class="btn btn-sm btn-primary" href="/">Home</a>
+            <a class="btn btn-sm btn-primary" href="/documentation.html">Documentation</a>
+            <a class="btn btn-sm btn-primary" href="/dev.html">Developer sample</a>
+            <a class="btn btn-sm btn-primary" target="_blank" id="menu-webclient-url" href="">Web client</a>
+            <a class="btn btn-sm btn-primary" target="_blank" href="/traces">Traces</a>
+            <a class="btn btn-sm btn-primary" target="_blank" href="/flash-trace">Flash trace (fetch once)</a>
+            <a class="btn btn-sm btn-primary" target="_blank" href="/fetch-trace">Last trace (fetch previous trace)</a>
+
+            <div class="row">
+                <div class="col-sm-7">
+                    <div class="card my-3">
+                        <div class="card-header">
+                            Status
+                        </div>
+                        <div class="card-body text-center">
+                            <div class="row">
+                                <div class="col-sm-3">
+                                    <div class="card bg-danger text-white" id="status-web-socket">
+                                        <div class="card-body">
+                                            Web socket
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="card bg-danger text-white" id="status-lilotrace-started">
+                                        <div class="card-body">
+                                            LiloTrace started
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="card bg-danger text-white" id="status-lilotrace-serial">
+                                        <div class="card-body">
+                                            LiloTrace Port Open
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="card bg-danger text-white" id="status-gateway-connected">
+                                        <div class="card-body">
+                                            Gateway connected
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card my-3">
+                        <div class="card-header">
+                            Actions
+                        </div>
+                        <div class="card-body">
+                            <span class="btn btn-sm btn-primary" onclick="liloTraceStart()">Start trace</span>
+                            <span class="btn btn-sm btn-primary" onclick="liloTraceStop()">Stop trace</span>
+                            <span class="btn btn-sm btn-primary" onclick="liloTraceResend()">Resend trace</span>
+                            <span class="btn btn-sm btn-primary" onclick="liloTraceDemo()">Demo trace</span>
+                            <span class="btn btn-sm btn-primary" onclick="liloTraceNormalize()">Normalize trace</span>
+                            <span class="btn btn-sm btn-primary" onclick="liloTraceRestart()">Restart LiloTrace</span>
+                        </div>
+                    </div>
+                    <div class="card my-3">
+                        <div class="card-header">
+                            Websocket status
+                        </div>
+                        <div class="card-body p-0 table-responsive" style="height:300px">
+                            <table class="table table-striped overflow-auto">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Code</th>
+                                        <th>Message</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-websocket-status">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="card my-3">
+                        <div class="card-header">
+                            Last trace
+                        </div>
+                        <div class="card-body p-0" style="height:300px" >
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="col-12 overflow-auto">
+                                        <textarea class="form-control" id="last-trace-box" style="height:300px;font-size:11px"></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="col-12 overflow-auto">
+                                        <textarea class="form-control" id="last-data-box" style="height:300px;font-size:11px"></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card my-3">
+                        <div class="card-header">
+                            Recent traces in this session
+                        </div>
+                        <div class="card-body p-0 table-responsive" style="height:200px">
+                            <table class="table table-striped overflow-auto">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tbody-traces">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-sm-5">
+                    <div class="card my-3">
+                        <div class="card-header">
+                            License information
+                        </div>
+                        <div class="card-body p-0 table-striped">
+                            <table class="table table-striped">
+                                <tr>
+                                    <th>App key</th>
+                                    <td class="text-end" id="config-app-key"></td>
+                                </tr>
+                                <tr>
+                                    <th>License</th>
+                                    <td class="text-end" id="config-license-key"></td>
+                                </tr>
+                                <tr>
+                                    <th>License type</th>
+                                    <td class="text-end" id="config-license-type"></td>
+                                </tr>
+                                <tr>
+                                    <th>Trial expire at</th>
+                                    <td class="text-end" id="config-expire-at"></td>
+                                </tr>
+                                <tr>
+                                    <th>Config file</th>
+                                    <td class="text-end" id="config-file"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="card my-3">
+                        <div class="card-header">
+                            Welcome
+                        </div>
+                        <div class="card-body">
+                            <p>Thank you for choosing our LiloConnect Software</p>
+
+                            <p>What to do next?</p>
+
+                            <p><b>I want to trace!</b>, no problem, visit our online client here.
+                            <a target="_blank" class="btn btn-primary" id="webclient-url" href="">Webclient</a>
+
+                            <p><b>Im a developer!</b>, let me see it work with 4 lines of code.
+                            <a target="_blank" class="btn btn-primary" href="/dev.html">Example code</a>
+
+                            <p><b>New user?</b> Sign up on our website, to continue to use our software when the trial runs out.</p>
+
+                            <a target="_blank" class="btn btn-primary" id="website-url" href="">Visit us here</a>
+                        </div>
+                    </div>
+
+                    <div class="card my-3">
+                        <div class="card-header">
+                            Configure your LiloConnect
+                        </div>
+                        <div class="card-body">
+
+                            <div class="card bg-light my-3">
+                                <div class="card-body">
+                                    <p><b>Already have a license?</b> Simply enter it here, and you are all set up.
+                                    </p>
+
+                                    <div style="display:none" class="alert alert-success" id="license-status-success"></div>
+                                    <div style="display:none" class="alert alert-danger" id="license-status-danger"></div>
+
+                                    <div class="mt-3">
+                                        <div class="row">
+                                            <div class="col-sm-8">
+                                                <input class="form-control" type="text" id="license" placeholder="Enter a license key">
+                                            </div>
+                                            <div class="col-sm-4">
+                                                <div class="d-grid gap-2">
+                                                    <button class="btn btn-primary" onclick="license()" type="button" onclick="">Enter license</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="card bg-light my-3">
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label for="mode">Mode</label>
+                                        <select class="form-control" id="mode">
+                                            <option value="off">Off</option>
+                                            <option value="lilo">LiloTrace</option>
+                                            <option value="gateway" style="display:none" id="gateway-option">Gateway</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="device">Output folder</label>
+                                        <input type="text" class="form-control" id="output_folder" placeholder="c:\OMA">
+                                    </div>
+                                </div>
+                            </div>
+
+                            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">LiloTrace</button>
+                                </li>
+                                <li class="nav-item" role="presentation" id="gateway-tab" style="display:none">
+                                    <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">Gateway</button>
+                                </li>
+                            </ul>
+                            <div class="tab-content" id="myTabContent">
+                                <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label for="serial_device">Mode</label>
+                                                <select class="form-control" id="serial_mode">
+                                                    <option value="blocking">Always listening</option>
+                                                    <option value="nonblocking">Request for a trace</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="serial_device">Device</label>
+                                                <input type="text" class="form-control" id="serial_device">
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="serial_baudrate">Baudrate</label>
+                                                <select class="form-control" id="serial_baudrate">
+                                                    <option value="110">110</option>
+                                                    <option value="300">300</option>
+                                                    <option value="600">600</option>
+                                                    <option value="1200">1200</option>
+                                                    <option value="2400">2400</option>
+                                                    <option value="4800">4800</option>
+                                                    <option value="9600">9600</option>
+                                                    <option value="14400">14400</option>
+                                                    <option value="19200">19200</option>
+                                                    <option value="38400">38400</option>
+                                                    <option value="57600">57600</option>
+                                                    <option value="115200">115200</option>
+                                                    <option value="128000">128000</option>
+                                                    <option value="256000">256000</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <input type="checkbox" value="1" id="serial_rtscts">
+                                                <label for="serial_rtscts">RTS/CTS</label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">
+                                    <div class="card bg-light">
+                                        <div class="card-body">
+                                            <div class="form-group">
+                                                <label for="gateway_device">Mode</label>
+                                                <select class="form-control" id="gateway_mode">
+                                                    <option value="nonblocking">Request for a trace</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="form-group">
+                                                <label for="gateway_parametermode">Run mode</label>
+                                                <select class="form-control" id="gateway_parametermode">
+                                                    <option value="skip">Reuse existing configuration</option>
+                                                    <option value="set">Set my parameters</option>
+                                                </select>
+                                            </div>
+
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="gateway_tracername">Tracer</label>
+                                                        <select class="form-control" id="gateway_tracername">
+                                                            <option value="Testshape">Testshape</option>
+                                                            <option value="Nidek LT">Nidek LT</option>
+                                                            <option value="Indo">Indo</option>
+                                                            <option value="Essilor phi">Essilor phi</option>
+                                                            <option value="Essilor kappa">Essilor kappa</option>
+                                                            <option value="Essilor eTess">Essilor eTess</option>
+                                                            <option value="Hoya GT1000">Hoya GT1000</option>
+                                                            <option value="Hoya GT3000">Hoya GT3000</option>
+                                                            <option value="Hoya UT1000">Hoya UT1000</option>
+                                                            <option value="Hoya GT5000">Hoya GT5000</option>
+                                                            <option value="WECO 3DFT">WEGO 3DFT</option>
+                                                            <option value="WECO Trace II">WECO Trace II</option>
+                                                            <option value="WECO Trace III">WECO Trace III</option>
+                                                            <option value="Topcon FR50">Topcon FR50</option>
+                                                            <option value="Briot ScanFormNet 2">Briot ScanFormNet 2</option>
+                                                            <option value="Briot Axcel">Briot Axcel</option>
+                                                            <option value="Briot Silver">Briot Silver</option>
+                                                            <option value="Briot Accura">Briot Accura</option>
+                                                            <option value="National Optronics 4T">National Optronics 4T</option>
+                                                            <option value="Takubomatic FD80">Takobomatic FD80</option>
+                                                            <option value="Huvitz Excelon">Huvitz Excelon</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="gateway_protocol">Protocol</label>
+                                                        <select class="form-control" id="gateway_protocol">
+                                                            <option value="OMA">OMA</option>
+                                                            <option value="NidekSTD">NidekSTD</option>
+                                                            <option value="NidekLAN">NidekLAN</option>
+                                                            <option value="HOYA">HOYA</option>
+                                                            <option value="PCCOM">PCCOM</option>
+                                                            <option value="WECO">WECO</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="gateway_socketaddress">Socket address</label>
+                                                        <input type="text" class="form-control" id="gateway_socketaddress" placeholder="127.0.0.1">
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="gateway_socketport">Socket port</label>
+                                                        <input type="text" class="form-control" id="gateway_socketport" placeholder="65500">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
+                                                <label for="gateway_tracerconnection">Connection</label>
+                                                <select class="form-control" id="gateway_tracerconnection">
+                                                    <option value="serial">Serial</option>
+                                                    <option value="tcpip_act">tcpipAct</option>
+                                                    <option value="tcpip_pas">tcpipPas</option>
+                                                    <option value="usb3">usb3</option>
+                                                    <option value="usb5">usb5</option>
+                                                    <option value="file">file</option>
+                                                </select>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="gateway_tracer_port">Tracer port</label>
+                                                        <input type="text" class="form-control" id="gateway_tracerport" placeholder="COM3">
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="gateway_bps">BPS</label>
+                                                        <select class="form-control" id="gateway_bps">
+                                                            <option value="9600">9600</option>
+                                                            <option value="19200">19200</option>
+                                                            <option value="115200">115200</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-4">
+                                                    <div class="form-group">
+                                                        <label for="gateway_parity">Parity</label>
+                                                        <select class="form-control" id="gateway_parity">
+                                                            <option value="none">None</option>
+                                                            <option value="even">Even</option>
+                                                            <option value="odd">Odd</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <div class="form-group">
+                                                        <label for="gateway_wordlen">Wordlen</label>
+                                                        <select class="form-control" id="gateway_wordlen">
+                                                            <option value="8">8</option>
+                                                            <option value="7">7</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <div class="form-group">
+                                                        <label for="gateway_stoplen">Stoplen</label>
+                                                        <select class="form-control" id="gateway_stoplen">
+                                                            <option value="1">1</option>
+                                                            <option value="1.5">1.5</option>
+                                                            <option value="2">2</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <input type="checkbox" value="1" id="gateway_rtscts">
+                                                        <label for="gateway_rtscts">Handshake RTS/CTS</label>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <input type="checkbox" value="1" id="gateway_dtrdsr">
+                                                        <label for="gateway_dtrdsr">Handshake DTR/DSR</label>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="row">
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="gateway_ipaddress">Ip address</label>
+                                                        <input type="text" class="form-control" id="gateway_ipaddress" placeholder="192.168.0.200">
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <div class="form-group">
+                                                        <label for="gateway_ipport">IP port</label>
+                                                        <input type="text" class="form-control" id="gateway_ipport" placeholder="">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="button" onclick="updateConfig()" class="btn btn-primary">Save configuration</button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+        <script src="https://www.liloconnect.com/lilo/websocket_lib.js"></script>
+
+        <script>
+            var liloHostname = 'ws://localhost:55002';
+            var localUrl = 'http://127.0.0.1:55001';
+            var apiUrl = null;
+
+            init();
+
+            function init()
+            {
+                connect(liloHostname);
+
+                document.addEventListener('liloTraceDone', item => {
+                    var data = item.detail;
+                    fetchTraces();
+
+                    document.getElementById('last-data-box').innerHTML = JSON.stringify(data.data, null, 2);
+                    document.getElementById('last-trace-box').innerHTML = data.data.oma;
+                });
+
+                document.addEventListener('liloTraceDisconnect', item => {
+                    document.getElementById('status-web-socket').classList.remove('bg-success');
+                    document.getElementById('status-lilotrace-serial').classList.remove('bg-success');
+                    document.getElementById('status-lilotrace-started').classList.remove('bg-success');
+                    document.getElementById('status-gateway-connected').classList.remove('bg-success');
+
+                    document.getElementById('status-web-socket').classList.add('bg-danger');
+                    document.getElementById('status-lilotrace-serial').classList.add('bg-danger');
+                    document.getElementById('status-lilotrace-started').classList.add('bg-danger');
+                    document.getElementById('status-gateway-connected').classList.add('bg-danger');
+                });
+
+                document.addEventListener('liloTraceInit', item => {
+                    let data = item.detail.data;
+                    let appconfig = data.appconfig;
+
+                    fetchTraces();
+
+                    document.getElementById('app-version').innerHTML = appconfig.license.version;
+                    document.getElementById('config-app-key').innerHTML = appconfig.license.app_key;
+                    document.getElementById('config-license-key').innerHTML = appconfig.license.license_key;
+                    document.getElementById('config-expire-at').innerHTML = appconfig.license.expire_at;
+                    document.getElementById('config-license-type').innerHTML = appconfig.license.license_type;
+                    document.getElementById('config-file').innerHTML = appconfig.config_file;
+
+                    document.getElementById('webclient-url').href = 'https://www.liloconnect.com/lilo/websocket_simple.html';
+                    document.getElementById('menu-webclient-url').href = 'https://www.liloconnect.com/lilo/websocket_simple.html';
+                    document.getElementById('website-url').href = 'https://my.liloconnect.com';
+
+                    apiUrl = data.api_url;
+
+                    document.getElementById('mode').value = appconfig.mode;
+                    document.getElementById('output_folder').value = appconfig.output_folder;
+                    document.getElementById('serial_mode').value = appconfig.serial.mode;
+                    document.getElementById('serial_device').value = appconfig.serial.device;
+                    document.getElementById('serial_baudrate').value = appconfig.serial.baudrate;
+                    document.getElementById('serial_rtscts').checked = appconfig.serial.rtscts;
+                    document.getElementById('gateway_socketaddress').value = appconfig.gateway.socketaddress;
+                    document.getElementById('gateway_socketport').value = appconfig.gateway.socketport;
+                    document.getElementById('gateway_mode').value = appconfig.gateway.mode;
+                    document.getElementById('gateway_parametermode').value = appconfig.gateway.parametermode;
+                    document.getElementById('gateway_tracername').value = appconfig.gateway.tracername;
+                    document.getElementById('gateway_protocol').value = appconfig.gateway.protocol;
+                    document.getElementById('gateway_tracerconnection').value = appconfig.gateway.tracerconnection;
+                    document.getElementById('gateway_tracerport').value = appconfig.gateway.tracerport;
+                    document.getElementById('gateway_bps').value = appconfig.gateway.bps;
+                    document.getElementById('gateway_parity').value = appconfig.gateway.parity;
+                    document.getElementById('gateway_wordlen').value = appconfig.gateway.wordlen;
+                    document.getElementById('gateway_stoplen').value = appconfig.gateway.stoplen;
+                    document.getElementById('gateway_rtscts').checked = appconfig.gateway.rtscts;
+                    document.getElementById('gateway_dtrdsr').checked = appconfig.gateway.dtrdsr;
+                    document.getElementById('gateway_ipaddress').value = appconfig.gateway.ipaddress;
+                    document.getElementById('gateway_ipport').value = appconfig.gateway.ipport;
+
+                    if (appconfig.license.is_premium) {
+                        document.getElementById('gateway-tab').style.display = 'block';
+                        document.getElementById('gateway-option').style.display = 'block';
+                    }
+                });
+
+                document.addEventListener('liloTraceStatus', item => {
+                    var data = item.detail.data;
+
+                    document.getElementById('status-web-socket').classList.remove('bg-danger');
+                    document.getElementById('status-lilotrace-serial').classList.remove('bg-danger');
+                    document.getElementById('status-gateway-connected').classList.remove('bg-danger');
+
+                    document.getElementById('status-web-socket').classList.add('bg-success');
+
+                    if (data.status.lilotrace_started) {
+                        document.getElementById('status-lilotrace-started').classList.remove('bg-danger');
+                        document.getElementById('status-lilotrace-started').classList.add('bg-success');
+                    } else {
+                        document.getElementById('status-lilotrace-started').classList.add('bg-danger');
+                        document.getElementById('status-lilotrace-started').classList.remove('bg-success');
+                    }
+
+                    if (data.status.lilotrace_serial) {
+                        document.getElementById('status-lilotrace-serial').classList.remove('bg-danger');
+                        document.getElementById('status-lilotrace-serial').classList.add('bg-success');
+                    } else {
+                        document.getElementById('status-lilotrace-serial').classList.add('bg-danger');
+                        document.getElementById('status-lilotrace-serial').classList.remove('bg-success');
+                    }
+
+                    if (data.status.gateway_connected) {
+                        document.getElementById('status-gateway-connected').classList.remove('bg-danger');
+                        document.getElementById('status-gateway-connected').classList.add('bg-success');
+                    } else {
+                        document.getElementById('status-gateway-connected').classList.add('bg-danger');
+                        document.getElementById('status-gateway-connected').classList.remove('bg-success');
+                    }
+                });
+
+                document.addEventListener('liloTraceMessage', item => {
+                    let date = Date.now();
+
+                    let tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${getCurrentTime()}</td>
+                        <td>${item.detail.code}</td>
+                        <td>${item.detail.message}</td>
+                        `;
+
+                    let tbody = document.getElementById('tbody-websocket-status');
+                    tbody.prepend(tr);
+                });
+            }
+
+            function updateConfig()
+            {
+                var out = {
+                    mode: document.getElementById('mode').value,
+                    output_folder: document.getElementById('output_folder').value,
+                    serial_mode: document.getElementById('serial_mode').value,
+                    serial_device: document.getElementById('serial_device').value,
+                    serial_baudrate: document.getElementById('serial_baudrate').value,
+                    serial_rtscts: document.getElementById('serial_rtscts').checked,
+                    gateway_socketaddress: document.getElementById('gateway_socketaddress').value,
+                    gateway_socketport: document.getElementById('gateway_socketport').value,
+                    gateway_mode: document.getElementById('gateway_mode').value,
+                    gateway_parametermode: document.getElementById('gateway_parametermode').value,
+                    gateway_tracername: document.getElementById('gateway_tracername').value,
+                    gateway_protocol: document.getElementById('gateway_protocol').value,
+                    gateway_tracerid: 1,
+                    gateway_tracerconnection: document.getElementById('gateway_tracerconnection').value,
+                    gateway_tracerport: document.getElementById('gateway_tracerport').value,
+                    gateway_bps: document.getElementById('gateway_bps').value,
+                    gateway_parity: document.getElementById('gateway_parity').value,
+                    gateway_wordlen: document.getElementById('gateway_wordlen').value,
+                    gateway_stoplen: document.getElementById('gateway_stoplen').value,
+                    gateway_rtscts: document.getElementById('gateway_rtscts').checked,
+                    gateway_dtrdsr: document.getElementById('gateway_dtrdsr').checked,
+                    gateway_ipaddress: document.getElementById('gateway_ipaddress').value,
+                    gateway_ipport: document.getElementById('gateway_ipport').value,
+                };
+
+                updateAllSettings(out);
+            }
+
+            function fetchTraces()
+            {
+                var opt = {}
+                var url = localUrl+'/traces';
+
+                fetch(url, opt)
+                    .then(response => response.json())
+                    .then(json => {
+                        var tbody = document.getElementById('tbody-traces');
+                        tbody.innerHTML = '';
+
+                        json.forEach(item => {
+                            const tr = document.createElement('tr');
+
+                            let html = `
+                            <td>${item.date}</td>
+                            <td class="text-end"><a class="btn btn-sm btn-primary" target="_blank" href="/download/${item.uuid}">Download</a></td>
+                            `;
+
+                            tr.innerHTML = html;
+                            tbody.appendChild(tr);
+                        });
+                    });
+            }
+
+            function license()
+            {
+                document.getElementById('license-status-success').style.display = 'none';
+                document.getElementById('license-status-danger').style.display = 'none';
+
+                var license = document.getElementById('license').value;
+                var cloudUrl = apiUrl+'/license/get?key='+license;
+
+                if (license.length == 0) {
+                    var url = localUrl+'/license?key=';
+                    fetch(url)
+                        .then((response) => response.json())
+                        .then((data2) => {
+                            document.getElementById('license-status-success').style.display = 'block';
+                            document.getElementById('license-status-success').innerHTML = 'License has been removed';
+
+                            setTimeout(function() {
+                                location.reload();
+                            }, 3000);
+                        })
+
+                } else {
+                    fetch(cloudUrl)
+                        .then((response) => response.json())
+                        .then((data1) => {
+                            if (data1.status == 'ok') {
+
+                                liloTraceLicenseUpdate(license);
+
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 3000);
+
+                            } else {
+                                document.getElementById('license-status-danger').style.display = 'block';
+                                document.getElementById('license-status-danger').innerHTML = data1.message;
+                            }
+                        })
+                }
+            }
+
+            function getCurrentTime()
+            {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                const seconds = String(now.getSeconds()).padStart(2, '0');
+
+                return `${hours}:${minutes}:${seconds}`;
+            }
+        </script>
+    </body>
+</html>
