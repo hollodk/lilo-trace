@@ -39,7 +39,7 @@ export class LiloApi {
     constructor() {
         this.appKey = null;
         this.apiUrl = 'https://www.liloconnect.com:55003/api';
-        //this.apiUrl = 'http://localhost:3000/api';
+        //this.apiUrl = 'http://localhost:55003/api';
         this.themeColor = 'blue';
     }
 

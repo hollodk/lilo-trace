@@ -701,8 +701,53 @@
                                 </div>
                             </div>
 
-                        </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Hair Color</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <template x-for="color in hairColors" :key="color.key">
+                                        <button type="button"
+                                                class="btn btn-sm border"
+                                                :style="`background-color: ${color.hex}`"
+                                                @click="hairColor = color.hex"
+                                                :class="{'border-3 border-dark': hairColor === color.hex}"
+                                                :title="color.name">
+                                            &#160;
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
 
+                            <div class="col-md-4">
+                                <label class="form-label">Hair Style</label>
+                                <select class="form-select" x-model="hairStyle">
+                                    <option value="none">No hair</option>
+                                    <option value="hair1">Hair 1</option>
+                                    <option value="hair2">Hair 2</option>
+                                    <option value="hair3">Hair 3</option>
+                                    <option value="hair4">Hair 4</option>
+                                    <option value="hair5">Hair 5</option>
+                                    <option value="hair6">Hair 6</option>
+                                    <option value="hair7">Hair 7</option>
+                                    <option value="hair8">Hair 8</option>
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label">Eyebrow Color</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <template x-for="color in eyebrowColors" :key="color.key">
+                                        <button type="button"
+                                                class="btn btn-sm border"
+                                                :style="`background-color: ${color.hex}`"
+                                                @click="eyebrowColor = color.hex"
+                                                :class="{'border-3 border-dark': eyebrowColor === color.hex}"
+                                                :title="color.name">
+                                            &#160;
+                                        </button>
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
                         <div class="text-end mt-4">
                             <button class="btn btn-success" @click="renderConfiguredFrame()">🔄 Render Configured Frame</button>
                         </div>
@@ -946,6 +991,9 @@
                     skinColor: 'light_beige',
                     eyeColor: 'steel_blue',
                     headshape: 'diamond',
+                    hairStyle: 'hair1',
+                    hairColor: '#ff00ff',
+                    eyebrowColor: '#000000',
                     gender: 'female',
                     showFaceOptions() {
                         return this.type === 'face';
@@ -1048,6 +1096,40 @@
                             eyebrowName: "Jet Black", eyebrowHex: "#000000",
                         },
                     ],
+                    hairColors: [
+                        { key: 'platinum_blonde', name: 'Platinum Blonde', hex: '#f5e6da' },
+                        { key: 'light_blonde', name: 'Light Blonde', hex: '#fbe7a1' },
+                        { key: 'golden_blonde', name: 'Golden Blonde', hex: '#f1c27d' },
+                        { key: 'dirty_blonde', name: 'Dirty Blonde', hex: '#d1b280' },
+                        { key: 'strawberry_blonde', name: 'Strawberry Blonde', hex: '#f4a460' },
+                        { key: 'copper', name: 'Copper', hex: '#b87333' },
+                        { key: 'light_red', name: 'Light Red', hex: '#c97b63' },
+                        { key: 'auburn', name: 'Auburn', hex: '#a52a2a' },
+                        { key: 'dark_red', name: 'Dark Red', hex: '#8b0000' },
+                        { key: 'light_brown', name: 'Light Brown', hex: '#a67c52' },
+                        { key: 'caramel_brown', name: 'Caramel Brown', hex: '#af6e4d' },
+                        { key: 'golden_brown', name: 'Golden Brown', hex: '#8b5e3c' },
+                        { key: 'medium_brown', name: 'Medium Brown', hex: '#6f4e37' },
+                        { key: 'chestnut_brown', name: 'Chestnut Brown', hex: '#5c4033' },
+                        { key: 'dark_brown', name: 'Dark Brown', hex: '#4e342e' },
+                        { key: 'espresso', name: 'Espresso', hex: '#3b2f2f' },
+                        { key: 'soft_black', name: 'Soft Black', hex: '#2b2b2b' },
+                        { key: 'jet_black', name: 'Jet Black', hex: '#000000' },
+                        { key: 'ash_gray', name: 'Ash Gray', hex: '#b2beb5' },
+                        { key: 'silver', name: 'Silver', hex: '#c0c0c0' },
+                        { key: 'steel_blue', name: 'Steel Blue', hex: '#4682b4' },
+                        { key: 'lavender', name: 'Lavender', hex: '#e6e6fa' },
+                        { key: 'pastel_pink', name: 'Pastel Pink', hex: '#ffc0cb' },
+                        { key: 'mint_green', name: 'Mint Green', hex: '#98ff98' },
+                        { key: 'peach', name: 'Peach', hex: '#ffdab9' },
+                    ],
+                    eyebrowColors: [
+                        { key: 'light_blonde', name: 'Light Blonde', hex: '#d8b27f' },
+                        { key: 'warm_brown', name: 'Warm Brown', hex: '#8b5e3c' },
+                        { key: 'medium_brown', name: 'Medium Brown', hex: '#6b4c3b' },
+                        { key: 'dark_brown', name: 'Dark Brown', hex: '#3b2a20' },
+                        { key: 'soft_black', name: 'Soft Black', hex: '#1f1f1f' },
+                    ],
                     selectedSkin: 'light_beige',
                     eyeColor: 'steel_blue',
                     frameColor: '#a0522d',
@@ -1090,6 +1172,13 @@
                                 },
                                 eye: {
                                     color: this.eyeColor,
+                                },
+                                eyebrow: {
+                                    color: this.eyebrowColor,
+                                },
+                                hair: {
+                                    style: this.hairStyle,
+                                    color: this.hairColor,
                                 },
                             },
                         };
